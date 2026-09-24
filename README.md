@@ -1,92 +1,162 @@
-# 🛣️ Gladiators: Budget-Constrained Road Maintenance Prioritization
+Gladiators: Budget-Constrained Road Maintenance Prioritization
+Hackathon Problem: HTH-CV-07 · Municipal Infrastructure
+Live Website: https://gladiators-roads.netlify.app
+Municipal road departments often have more damaged roads than they can afford to repair at once. Gladiators is designed to help them decide where limited repair money should be spent first.
+The system detects road damage from images, places the reported damage on a real-world map, considers traffic and nearby public facilities such as hospitals, schools and colleges, and then creates a repair plan based on the available budget.
+How it works
+Road Photo + GPS
+       ↓
+YOLOv8 Damage Detection
+       ↓
+Identify Street + Estimate Traffic
+       ↓
+Check Nearby Hospitals / Schools / Colleges
+       ↓
+Calculate Repair Priority
+       ↓
+0/1 Knapsack Optimization
+       ↓
+Budget-Based Repair Plan
+What the system does
+1. Detect road damage
+We use YOLOv8s trained/evaluated with the RDD2022 road-damage dataset.
+The system identifies four types of damage:
+- D00 — Longitudinal crack
+- D10 — Transverse crack
+- D20 — Alligator crack
+- D40 — Pothole
+2. Put the damage on the map
+Each report can be associated with GPS coordinates from the image or directly from the website using "Report damage here."
+The location is then displayed on a real street map using OpenStreetMap.
+This allows road authorities to see where the problem actually exists, rather than looking at a list of images alone.
+3. Calculate road priority
+Not every damaged road has the same impact.
+Gladiators considers the road type and nearby important public places when calculating priority.
+Traffic is currently estimated from the road class:
+Road type	Traffic level
+Highway / Main road	High
+Secondary / Tertiary road	Medium
+Residential road	Low
 
-**Hackathon problem:** HTH-CV-07 · Municipal Infrastructure
-**Live website:** https://gladiators-roads.netlify.app
 
-City road departments have far more damaged roads than money to fix them. Gladiators finds road damage from photos, puts it on the real city map, gives extra priority to busy roads and to roads near hospitals, schools and colleges, and picks the repairs that remove the most risk within a fixed budget.
+Additional priority is given when damaged roads are located near:
+- Hospitals — +60%
+- Schools — +40%
+- Colleges — +30%
+These values are configurable planning assumptions rather than measured risk values.
+4. Optimize repairs within the budget
+The main problem is simple:
+There may be more roads to repair than the available budget can cover.
 
-## How it works
-
-```
-Road photo (GPS) → YOLOv8 damage detection → street + traffic level → public-place priority → 0/1 knapsack → repair plan
-```
-
-| Step | What happens |
-|---|---|
-| Detect | YOLOv8s finds 4 RDD2022 damage types: D00 longitudinal crack, D10 transverse crack, D20 alligator crack, D40 pothole |
-| Locate | Photo GPS or the website's "Report damage here" button places each damage on the real street (OpenStreetMap) |
-| Weight | Traffic level from road class: High (highway/main road), Medium (secondary/tertiary), Low (residential). Extra priority near hospitals (+60%), schools (+40%), colleges (+30%) |
-| Optimize | 0/1 knapsack: maximise total risk removed with total cost ≤ budget. Compared with "fix the worst first" |
-| Plan | Map, ranked lists (streets, public places, areas), downloadable dataset CSV |
-
-## Repository structure
-
-```
+Gladiators treats each repair as an item with:
+- a repair cost
+- a calculated risk/priority value
+It then uses a 0/1 Knapsack algorithm to select the combination of repairs that maximizes the total risk addressed without exceeding the available budget.
+The system can therefore compare the optimized plan with a simple "fix the worst damage first" approach.
+5. Generate a repair plan
+The final result can be viewed through:
+- Interactive map
+- Ranked damaged streets
+- Public-place priority lists
+- Area-wise summaries
+- Budget-based repair recommendations
+- Downloadable CSV dataset
+Repository Structure
 gladiators-road-repair/
-├── website/index.html                          Project website + live planner (any city, GPS reporting)
+│
+├── website/
+│   └── index.html
+│       └── Project website and live road-damage planner
+│
 ├── notebooks/
-│   ├── road_damage_detection.ipynb             Colab: RDD2022 dataset, training, validation, detections.csv
-│   └── chennai_survey_to_dataset.ipynb         Colab: GPS road photos → YOLO → survey dataset CSV
-├── optimizer/optimizer.py                      Command-line optimizer (plan CSV, chart, map)
-├── dashboard/app.py                            Streamlit dashboard with budget slider
-├── backend/                                    FastAPI: photo upload → YOLO → plan API, serves a connected website
-└── data/sample_detections_synthetic.csv        Synthetic sample input (for testing only)
-```
-
-## Run it
-
-**Website:** open `website/index.html` in Chrome (internet needed for the map), or use the live link above.
-Use **📍 My location** and **Report damage here** on a phone (needs the https link).
-
-**Optimizer**
-```
+│   ├── road_damage_detection.ipynb
+│   │   └── RDD2022 training, validation and detections
+│   │
+│   └── chennai_survey_to_dataset.ipynb
+│       └── GPS road photos → YOLO → survey dataset
+│
+├── optimizer/
+│   └── optimizer.py
+│       └── Command-line budget optimizer
+│
+├── dashboard/
+│   └── app.py
+│       └── Streamlit dashboard
+│
+├── backend/
+│   └── main.py
+│       └── FastAPI backend
+│
+└── data/
+    └── sample_detections_synthetic.csv
+        └── Synthetic test data
+Running the Project
+Website
+The simplest option is to open:
+website/index.html
+in Chrome.
+The live version is also available at:
+https://gladiators-roads.netlify.app
+The My Location and Report Damage Here features require location access and work best through the HTTPS website on a phone.
+Optimizer
 cd optimizer
 pip install -r requirements.txt
 python optimizer.py --csv ../data/sample_detections_synthetic.csv --budget 500000
-```
-
-**Dashboard**
-```
+Dashboard
 cd dashboard
 pip install -r requirements.txt
 python -m streamlit run app.py
-```
-
-**Backend**
-```
+Backend
 cd backend
 pip install -r requirements.txt
 python -m uvicorn main:app --reload
-```
-Open http://127.0.0.1:8000 and http://127.0.0.1:8000/docs
+Then open:
+http://127.0.0.1:8000
+API documentation:
+http://127.0.0.1:8000/docs
+Notebooks
+The notebooks can be run through Google Colab.
+For model training, select a T4 GPU and execute the cells in order. The road-damage dataset can be accessed using the Roboflow API key where indicated in the notebook.
+Model Results
+The model was evaluated on 1,632 validation images from the Norway subset of RDD2022.
+Model	mAP@50
+Our YOLOv8s — 18 epochs on free Colab	0.138
+Pretrained RDD2022 YOLOv8s — 640 px	0.240
+Pretrained model — 1024 px	0.265
 
-**Notebooks:** upload to Google Colab, choose a T4 GPU, run the cells in order. Put your own Roboflow API key where the notebook says `YOUR_ROBOFLOW_API_KEY`.
 
-## Results
+At 1024 px, the per-class results were:
+Damage type	mAP@50
+Longitudinal crack	0.445
+Alligator crack	0.321
+Transverse crack	0.293
+Pothole	0.001
 
-mAP@50 on 1,632 validation images (RDD2022, Norway subset):
 
-| Model | mAP@50 |
-|---|---|
-| Our YOLOv8s, 18 epochs on free Colab | 0.138 |
-| Pretrained RDD2022 YOLOv8s ([dronefreak/rdd2022-yolov8s](https://huggingface.co/dronefreak/rdd2022-yolov8s)), 640 px | 0.240 |
-| Same model at 1024 px | **0.265** |
-
-Per class at 1024 px: longitudinal 0.445, alligator 0.321, transverse 0.293, pothole 0.001.
-
-## Data sources and honesty notes
-
-- Streets, hospitals, schools, colleges and area names: © OpenStreetMap contributors.
-- Traffic level is **estimated from road class**, not measured.
-- Repair rates are **approximate planning assumptions** (₹ per repair), editable on the website.
-- Damage shown on the website is **simulated** until real survey data is loaded or reported with GPS.
-- `data/sample_detections_synthetic.csv` is synthetic test data.
-- Pretrained weights are AGPL-3.0 licensed.
-
-## Limitations and next steps
-- Potholes are rarely detected (few potholes in the Norway training data) → fine-tune on Indian road images.
-- Replace estimated traffic with real traffic counts from the city.
-- Use the city's official Schedule of Rates for repair costs.
-
-## Team
-**Gladiators** · Built with YOLOv8 (Ultralytics), PyTorch, Google Colab, pandas, NumPy, Streamlit, FastAPI, Leaflet, OpenStreetMap.
+The results also show an important limitation: potholes are not being detected reliably by the current model.
+Data and Assumptions
+The project intentionally separates measured data from assumptions.
+- Road and public-place information comes from OpenStreetMap contributors.
+- Traffic level is currently estimated from road classification rather than live traffic counts.
+- Repair costs are approximate planning values and can be changed.
+- Damage displayed on the website is simulated until actual survey data is uploaded or a user reports damage with GPS.
+- sample_detections_synthetic.csv is synthetic data intended only for testing.
+- The pretrained model weights are licensed under AGPL-3.0.
+This means the current system should be viewed as a decision-support prototype, not as an official municipal road assessment system.
+Current Limitations
+There are a few areas we want to improve.
+Pothole detection
+The current RDD2022 Norway training data contains relatively few useful pothole examples, which is reflected in the very low pothole detection score.
+The next step is to fine-tune the model using Indian road images, particularly images from Tamil Nadu and other Indian cities.
+Traffic information
+Traffic is currently estimated from road classification.
+A production version could use actual traffic counts or reliable traffic datasets from the respective city.
+Repair costs
+The current repair costs are planning estimates.
+For real municipal deployment, they should be replaced with the city's official Schedule of Rates (SOR).
+Team
+Gladiators
+Built using:
+YOLOv8 · Ultralytics · PyTorch · Google Colab · pandas · NumPy · Streamlit · FastAPI · Leaflet · OpenStreetMap
+Our goal is not simply to find damaged roads. It is to help answer the more practical question:
+"Given the roads that need attention and the money available, where should we repair first to address the greatest amount of risk?"
