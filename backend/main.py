@@ -31,6 +31,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
+import cv2
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,11 +48,21 @@ MAX_UPLOAD_MB = 15
 
 # ---------------- settings (same numbers as the website) ----------------
 CLASS_NAME = ["Longitudinal crack", "Transverse crack", "Alligator crack", "Pothole"]
+CODES = ["D00", "D10", "D20", "D40"]
 CLASS_WEIGHT = [0.4, 0.5, 0.8, 1.0]
 UNIT_COST = [600, 600, 1200, 2500]        # Rs per m2
 FIXED_COST = 15000                        # Rs per site
 IMG_AREA_M2 = 20
 ROAD_TYPES = {"Highway": 30000, "Arterial": 15000, "Collector": 5000, "Local": 1000}
+
+# Colors matching website UI palette (BGR format for OpenCV)
+# D00 (blue #2563eb), D10 (purple #7c3aed), D20 (orange #ea580c), D40 (red #dc2626)
+COLORS_BGR = {
+    0: (235, 99, 37),
+    1: (237, 58, 124),
+    2: (12, 88, 234),
+    3: (38, 38, 220)
+}
 
 app = FastAPI(title="Gladiators API", version="1.0")
 _cors = dict(allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -68,11 +79,13 @@ async def allow_private_network(request: Request, call_next):
     response.headers["Access-Control-Allow-Private-Network"] = "true"
     return response
 
-# ---------------- model (loaded on first use) ----------------
+# ---------------- models (loaded on first use) ----------------
 _model = None
+_pothole_model = None
 
 
 def get_model():
+    """Primary road damage model (RDD2022 YOLOv8s: cracks and general road defects)."""
     global _model
     if _model is None:
         from ultralytics import YOLO
@@ -82,6 +95,27 @@ def get_model():
             path = hf_hub_download("dronefreak/rdd2022-yolov8s", "best.pt")
         _model = YOLO(path)
     return _model
+
+
+def get_pothole_model():
+    """Dedicated high-accuracy pothole detector (YOLOv8s trained specifically on potholes)."""
+    global _pothole_model
+    if _pothole_model is None:
+        from ultralytics import YOLO
+        path = os.environ.get("POTHOLE_MODEL_PATH", os.path.join(BASE, "pothole_best.pt"))
+        if not os.path.exists(path):
+            try:
+                from huggingface_hub import hf_hub_download
+                path = hf_hub_download("samdutse/pothole-yolov8", "best.pt")
+            except Exception as e:
+                print("Could not load samdutse pothole model:", e)
+                try:
+                    path = hf_hub_download("peterhdd/pothole-detection-yolov8", "best.pt")
+                except Exception:
+                    path = None
+        if path and os.path.exists(path):
+            _pothole_model = YOLO(path)
+    return _pothole_model
 
 
 def class_index(name):
@@ -95,17 +129,194 @@ def class_index(name):
     return 3
 
 
+def box_iou(b1, b2):
+    """Intersection-over-Union between two boxes [x1, y1, x2, y2]."""
+    x1 = max(b1[0], b2[0])
+    y1 = max(b1[1], b2[1])
+    x2 = min(b1[2], b2[2])
+    y2 = min(b1[3], b2[3])
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    a1 = max(0.0, b1[2] - b1[0]) * max(0.0, b1[3] - b1[1])
+    a2 = max(0.0, b2[2] - b2[0]) * max(0.0, b2[3] - b2[1])
+    union = a1 + a2 - inter
+    return inter / union if union > 0 else 0.0
+
+
+def detect_road_depression_potholes(img: Image.Image):
+    """
+    Fallback CV analysis: detects dark recessed cavities characteristic of potholes
+    on road surfaces if deep learning confidence is borderline or misses it.
+    """
+    try:
+        w_orig, h_orig = img.size
+        img_np = np.array(img)
+        if img_np.ndim == 2:
+            gray = img_np
+        elif img_np.shape[2] == 4:
+            gray = cv2.cvtColor(img_np, cv2.COLOR_RGBA2GRAY)
+        else:
+            gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+
+        blurred = cv2.GaussianBlur(gray, (9, 9), 0)
+        mean_val = float(np.mean(blurred))
+        std_val = float(np.std(blurred))
+        if std_val < 8:
+            return []
+
+        thresh_val = max(10, mean_val - 1.25 * std_val)
+        _, thresh = cv2.threshold(blurred, thresh_val, 255, cv2.THRESH_BINARY_INV)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+        opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
+
+        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        img_area = float(w_orig * h_orig)
+        found = []
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
+            if 0.015 * img_area <= area <= 0.40 * img_area:
+                x, y, w, h = cv2.boundingRect(cnt)
+                aspect = float(w) / max(1.0, float(h))
+                if 0.35 <= aspect <= 2.8:
+                    if x > 5 and y > 5 and (x + w) < (w_orig - 5) and (y + h) < (h_orig - 5):
+                        roi = gray[y:y+h, x:x+w]
+                        if np.mean(roi) < mean_val - 15:
+                            found.append({
+                                "cls": 3,
+                                "conf": 0.45,
+                                "area": round((w * h) / img_area, 4),
+                                "box": [float(x), float(y), float(x + w), float(y + h)],
+                                "source": "cv_depression"
+                            })
+        if found:
+            found.sort(key=lambda b: b["area"], reverse=True)
+            return [found[0]]
+        return []
+    except Exception as e:
+        print("CV depression fallback error:", e)
+        return []
+
+
+def annotate_boxes(img: Image.Image, boxes):
+    """Draws color-coded bounding boxes and labels matching the website design."""
+    w_orig, h_orig = img.size
+    img_np = np.array(img)
+    if img_np.ndim == 2:
+        img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2RGB)
+    elif img_np.shape[2] == 4:
+        img_np = cv2.cvtColor(img_np, cv2.COLOR_RGBA2RGB)
+    img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+
+    for b in boxes:
+        cls_id = b["cls"]
+        color = COLORS_BGR.get(cls_id, (38, 38, 220))
+        x1, y1, x2, y2 = [int(v) for v in b["box"]]
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(w_orig - 1, x2), min(h_orig - 1, y2)
+
+        cv2.rectangle(img_bgr, (x1, y1), (x2, y2), color, 3)
+        label = f"{CODES[cls_id]} {CLASS_NAME[cls_id]} {int(b['conf'] * 100)}%"
+        font_scale = max(0.5, min(1.0, w_orig / 1000.0))
+        thickness = 2 if font_scale > 0.6 else 1
+        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+        y_text = max(y1, th + 8)
+        cv2.rectangle(img_bgr, (x1, y_text - th - 6), (x1 + tw + 8, y_text + 4), color, -1)
+        cv2.putText(img_bgr, label, (x1 + 4, y_text - 2), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+
+    _, buf = cv2.imencode(".jpg", img_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+    return buf.tobytes()
+
+
 def run_detection(img: Image.Image):
-    """Returns (detections, annotated JPEG bytes). detections = [[cls, area, conf], ...]"""
-    model = get_model()
-    r = model.predict(img, conf=0.25, imgsz=1024, verbose=False)[0]
-    dets = []
-    for c, cf, (x, y, w, h) in zip(r.boxes.cls.tolist(), r.boxes.conf.tolist(), r.boxes.xywhn.tolist()):
-        dets.append([class_index(model.names[int(c)]), round(w * h, 4), round(cf, 3)])
-    plotted = r.plot()[:, :, ::-1]                       # BGR -> RGB
-    buf = io.BytesIO()
-    Image.fromarray(plotted).save(buf, format="JPEG", quality=85)
-    return dets, buf.getvalue()
+    """
+    Ensemble detection pipeline:
+    1. Dedicated YOLOv8 pothole model for high-recall pothole detection (D40)
+    2. Primary RDD2022 YOLOv8 model for cracks (D00, D10, D20)
+    3. Intelligent box merging (NMS)
+    4. Adaptive threshold & CV contour fallback
+    Returns (detections, annotated JPEG bytes). detections = [[cls, area, conf], ...]
+    """
+    raw_candidates = []
+
+    # 1. Dedicated pothole detection model
+    try:
+        p_model = get_pothole_model()
+        if p_model is not None:
+            r_p = p_model.predict(img, conf=0.18, imgsz=640, verbose=False)[0]
+            for cf, (x, y, w, h), (x1, y1, x2, y2) in zip(
+                    r_p.boxes.conf.tolist(),
+                    r_p.boxes.xywhn.tolist(),
+                    r_p.boxes.xyxy.tolist()):
+                raw_candidates.append({
+                    "cls": 3,  # Pothole (D40)
+                    "conf": round(float(cf), 3),
+                    "area": round(float(w * h), 4),
+                    "box": [float(x1), float(y1), float(x2), float(y2)],
+                    "source": "pothole_model"
+                })
+    except Exception as e:
+        print("Pothole model prediction warning:", e)
+
+    # 2. General road damage model (RDD2022)
+    try:
+        c_model = get_model()
+        if c_model is not None:
+            r_c = c_model.predict(img, conf=0.20, imgsz=1024, verbose=False)[0]
+            for c, cf, (x, y, w, h), (x1, y1, x2, y2) in zip(
+                    r_c.boxes.cls.tolist(),
+                    r_c.boxes.conf.tolist(),
+                    r_c.boxes.xywhn.tolist(),
+                    r_c.boxes.xyxy.tolist()):
+                cls_idx = class_index(c_model.names[int(c)])
+                raw_candidates.append({
+                    "cls": cls_idx,
+                    "conf": round(float(cf), 3),
+                    "area": round(float(w * h), 4),
+                    "box": [float(x1), float(y1), float(x2), float(y2)],
+                    "source": "crack_model"
+                })
+    except Exception as e:
+        print("Crack model prediction warning:", e)
+
+    # 3. Non-Maximum Suppression / Overlap Filtering
+    raw_candidates.sort(key=lambda b: (CLASS_WEIGHT[b["cls"]] * b["conf"]), reverse=True)
+    merged_boxes = []
+    for cand in raw_candidates:
+        if not any(box_iou(cand["box"], kept["box"]) > 0.40 for kept in merged_boxes):
+            merged_boxes.append(cand)
+
+    # 4. Adaptive Second Chance: if no detections, try lower pothole threshold
+    if not merged_boxes:
+        try:
+            p_model = get_pothole_model()
+            if p_model is not None:
+                r_p2 = p_model.predict(img, conf=0.10, imgsz=640, verbose=False)[0]
+                for cf, (x, y, w, h), (x1, y1, x2, y2) in zip(
+                        r_p2.boxes.conf.tolist(),
+                        r_p2.boxes.xywhn.tolist(),
+                        r_p2.boxes.xyxy.tolist()):
+                    merged_boxes.append({
+                        "cls": 3,
+                        "conf": round(float(cf), 3),
+                        "area": round(float(w * h), 4),
+                        "box": [float(x1), float(y1), float(x2), float(y2)],
+                        "source": "pothole_model_sensitive"
+                    })
+        except Exception:
+            pass
+
+    # 5. CV Depression Fallback: if still nothing, check for dark road craters
+    if not merged_boxes:
+        cv_boxes = detect_road_depression_potholes(img)
+        if cv_boxes:
+            merged_boxes.extend(cv_boxes)
+
+    # 6. Annotate image
+    jpg_bytes = annotate_boxes(img, merged_boxes)
+    dets = [[b["cls"], b["area"], b["conf"]] for b in merged_boxes]
+    return dets, jpg_bytes
+
 
 
 # ---------------- data store (in memory, seeded from CSV) ----------------
@@ -185,7 +396,8 @@ class PlanRequest(BaseModel):
 def health():
     with db() as con:
         n = con.execute("SELECT COUNT(*) FROM reports").fetchone()[0]
-    return {"status": "ok", "segments": len(SEGMENTS), "model_loaded": _model is not None, "reports": n}
+    return {"status": "ok", "segments": len(SEGMENTS),
+            "model_loaded": (_model is not None or _pothole_model is not None), "reports": n}
 
 
 @app.get("/api/segments")
@@ -431,12 +643,16 @@ def set_status(rid: int, req: StatusRequest):
 
 @app.on_event("startup")
 def warm_up_model():
-    # load YOLO in the background so the first photo does not wait for the download
+    # load YOLO models in the background so the first photo does not wait for download
     def load():
         try:
             get_model()
         except Exception as e:
-            print("Model will load on first photo:", e)
+            print("Crack model will load on first photo:", e)
+        try:
+            get_pothole_model()
+        except Exception as e:
+            print("Pothole model will load on first photo:", e)
     threading.Thread(target=load, daemon=True).start()
 
 
