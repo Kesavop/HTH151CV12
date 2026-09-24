@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.pt
+annotated/
+annotated.zip
+repair_plan.csv
+unfunded.csv
+budget_curve.png
+map.html
+.DS_Store
+Thumbs.db
+
+# photo reports database (stays on the server)
+backend/data/reports.db
+backend/data/uploads/
