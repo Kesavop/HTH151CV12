@@ -1,0 +1,13 @@
+# Everything for backend + dashboard + optimizer
+fastapi
+uvicorn
+python-multipart
+ultralytics
+huggingface_hub
+streamlit
+streamlit-folium
+folium
+matplotlib
+pandas
+numpy
+pillow

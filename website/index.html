@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gladiators Road Repair</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f7f5; --surface:#ffffff; --surface-2:#eef0ed; --ink:#15181b; --muted:#5b6268; --line:#d9ddd8;
+  --accent:#f2c230; --accent-ink:#8a6300;
+  --good:#23824a; --bad:#c7382a;
+  --hi:#b3261e; --hi-bg:#fbe4e1; --md:#b86a00; --md-bg:#fdefd9; --lo:#2f6c3f; --lo-bg:#e3f2e7;
+  --hosp:#c2185b; --school:#1f63b8; --college:#6a3fc0;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1;margin:0}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.06em}
+.city{display:flex;gap:6px;align-items:center}
+.city input{font:600 15px var(--body);padding:7px 10px;border:2px solid var(--ink);width:210px}
+.search{margin-left:auto;display:flex;gap:6px;flex:1;max-width:440px;min-width:230px;position:relative}
+.search input{flex:1;min-width:0;font:inherit;padding:8px 10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.btn{font:600 13px var(--body);background:var(--accent);color:#15181b;border:0;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.ghost{background:var(--surface);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.sugg{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--line);z-index:2000;max-height:320px;overflow:auto;box-shadow:0 10px 24px rgba(0,0,0,.12)}
+.sugg div{padding:7px 10px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.sugg div:hover,.sugg div.act{background:var(--surface-2)}
+.sugg small{color:var(--muted);white-space:nowrap}
+.banner{background:#fff7dc;border-bottom:1px solid #f0dfa2;color:#6b4d00;font-size:12.5px;padding:6px 16px}
+
+.layout{display:grid;grid-template-columns:440px 1fr}
+aside{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto}
+.blk{padding:14px 16px;border-bottom:1px solid var(--line)}
+.blk h3{font-size:19px;margin-bottom:10px}
+label.l{display:block;font-weight:600;font-size:12.5px;margin-bottom:4px}
+.budget-row{display:flex;gap:10px;align-items:center}
+.budget-row input[type=range]{flex:1;accent-color:var(--accent)}
+input[type=number]{font:inherit;padding:6px 8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:96px}
+.big{font-family:var(--display);font-size:30px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;font-size:13px}
+.grid3{display:grid;grid-template-columns:1fr 80px 80px;gap:6px 8px;align-items:center;font-size:13px}
+.grid2 input,.grid3 input{width:100%}
+.grid3 .h{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;color:#fff;font:700 11px var(--body);margin-right:6px;vertical-align:-3px}
+.b-h{background:var(--hosp)}.b-s{background:var(--school)}.b-c{background:var(--college)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.kpi{background:var(--surface);padding:9px 11px}
+.kpi .k{font-size:11.5px;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-size:26px;font-weight:700;line-height:1.1}
+.kpi .d{font-family:var(--mono);font-size:11px;color:var(--good)}
+.lvl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.lvl div{border:1px solid var(--line);padding:8px 10px}
+.lvl b{font-family:var(--display);font-size:22px;display:block}
+.lvl small{color:var(--muted);font-size:11.5px}
+.chip{font-family:var(--mono);font-size:10.5px;padding:2px 6px;text-transform:uppercase;white-space:nowrap;font-weight:500}
+.chip.High{background:var(--hi-bg);color:var(--hi)}
+.chip.Medium{background:var(--md-bg);color:var(--md)}
+.chip.Low{background:var(--lo-bg);color:var(--lo)}
+.chip.full{background:#e1f1e6;color:var(--good)}
+.chip.part{background:#fdefd9;color:#b86a00}
+.chip.wait{background:#fbe4e1;color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tabs{display:inline-flex;border:1px solid var(--line)}
+.tabs button{font:600 12px var(--body);background:var(--surface);color:var(--ink);border:0;padding:6px 9px;cursor:pointer}
+.tabs button.on{background:var(--ink);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
+td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+.tbl{max-height:380px;overflow:auto;border:1px solid var(--line)}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0}
+.status{font-family:var(--mono);font-size:12px;margin:8px 0 0}
+.map-wrap{position:relative}
+#map{height:100%;width:100%;background:#eef0ed}
+.legend{position:absolute;right:10px;bottom:24px;z-index:1000;background:var(--surface);border:1px solid var(--line);padding:8px 10px;font-size:12px;line-height:1.75;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.legend .ln{display:inline-block;width:22px;height:0;border-top-style:solid;margin-right:6px;vertical-align:middle}
+.loading{position:absolute;inset:0;z-index:1500;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.loading>div{max-width:400px}
+.loading b{font-family:var(--display);font-size:24px;text-transform:uppercase;display:block;margin-bottom:6px}
+.fac-icon{display:flex;align-items:center;justify-content:center;border-radius:5px;color:#fff;font:700 11px var(--body);border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.place-label{background:#fff;color:#15181b;border:1px solid #d9ddd8;font:700 12px var(--display);letter-spacing:.03em;padding:1px 6px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.place-label::before{display:none}
+.leaflet-popup-content{font-family:var(--body);font-size:13px;margin:10px 12px}
+.pop h4{margin:0 0 4px;font-family:var(--display);font-size:18px;text-transform:uppercase}
+.pop td{padding:2px 4px;border:0}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;height:auto}
+  .map-wrap{height:70vh;order:-1}
+  aside{border-right:0}
+  .search{max-width:none;margin-left:0;width:100%}
+}
+
+/* ---------- site ---------- */
+html{scroll-behavior:smooth}
+.site-nav{position:sticky;top:0;z-index:3000;background:#15181b;color:#fff}
+.site-nav .in{max-width:1240px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.site-nav .brand{color:#fff}
+.site-nav nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
+.site-nav nav a{color:#fff;text-decoration:none;font-weight:600;font-size:14px;opacity:.8}
+.site-nav nav a:hover{opacity:1;color:#f2c230}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px}
+.sec{padding-block:56px;border-bottom:1px solid var(--line)}
+.sec.alt{background:var(--surface)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sec h2{font-size:clamp(32px,4.4vw,52px);margin:6px 0 10px}
+.lead{color:var(--muted);max-width:64ch;font-size:16px;margin:0}
+.hero{padding-block:64px 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.hero h1{font-size:clamp(44px,7vw,92px);color:var(--ink);line-height:.95}
+.hero h1 em{font-style:normal;background:#f2c230;padding:0 .12em}
+.hero .lead{margin-top:18px;font-size:18px}
+.hero .cta{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.hero .cta a{text-decoration:none}
+.lane{height:14px;margin-top:40px;background:#15181b;position:relative;overflow:hidden}
+.lane::after{content:"";position:absolute;inset:5px 0;background:repeating-linear-gradient(90deg,#f2c230 0 46px,transparent 46px 80px);animation:drive 2.4s linear infinite}
+@keyframes drive{to{transform:translateX(-80px)}}
+@media (prefers-reduced-motion:reduce){.lane::after{animation:none}}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);background:var(--surface);margin-top:26px}
+.cards>div{padding:20px;border-right:1px solid var(--line)}
+.cards>div:last-child{border-right:0}
+.cards h3{font-size:24px;margin-bottom:8px}
+.cards p{margin:0;color:var(--muted)}
+.cards .n{font-family:var(--display);font-size:46px;font-weight:800;color:var(--accent-ink);line-height:1}
+.steps5{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);background:var(--surface);margin-top:26px}
+.steps5>div{padding:18px;border-right:1px solid var(--line)}
+.steps5>div:last-child{border-right:0}
+.steps5 .n{font-family:var(--display);font-size:44px;font-weight:800;color:var(--accent-ink);line-height:1}
+.steps5 h3{font-size:22px;margin:8px 0 6px}
+.steps5 p{margin:0;font-size:14px;color:var(--muted)}
+.app-sec{padding-block:40px 0}
+.app-box{border:1px solid var(--line);margin-top:20px;background:var(--surface)}
+.app-box .layout{height:82vh;min-height:620px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px}
+.panel{background:var(--surface);border:1px solid var(--line)}
+.panel-h{padding:12px 16px;border-bottom:1px solid var(--line)}
+.panel-h h3{font-size:22px}
+.bars{padding:16px}
+.bar-row{display:grid;grid-template-columns:200px 1fr 56px;gap:12px;align-items:center;padding:8px 0}
+.bar-track{height:22px;background:var(--surface-2);position:relative}
+.bar-fill{position:absolute;inset:0 auto 0 0;background:#9aa6b2}
+.bar-fill.best{background:#f2c230}
+.bar-val{font-family:var(--mono);text-align:right}
+.ptable td,.ptable th{padding:9px 12px}
+.ptable tbody tr{cursor:default}
+.stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.stack span{border:1px solid rgba(255,255,255,.3);padding:6px 10px;font-family:var(--mono);font-size:12.5px}
+.team{background:#15181b;color:#fff}
+.team .lead{color:#c9cdd1}
+.team h2{font-size:clamp(56px,10vw,140px);letter-spacing:.04em}
+.team h2 span{color:#f2c230}
+.foot{padding:20px;font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:900px){.cards,.steps5,.two{grid-template-columns:1fr}.cards>div,.steps5>div{border-right:0;border-bottom:1px solid var(--line)}.bar-row{grid-template-columns:1fr 50px}.bar-row .bar-track{grid-column:1/-1;grid-row:2}}
+</style>
+</head>
+<body>
+<div class="site-nav"><div class="in">
+  <div class="brand"><svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#f2c230"/><path d="M15 8 V24" stroke="#15181b" stroke-width="3" stroke-dasharray="4 3"/></svg>GLADIATORS</div>
+  <nav><a href="#problem">Problem</a><a href="#how">How it works</a><a href="#planner">Live planner</a><a href="#model">Model</a><a href="#data">Dataset</a><a href="#team">Team</a></nav>
+</div></div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">HTH-CV-07 · Budget-constrained road maintenance</div>
+  <h1>Too many potholes.<br>Not enough money.<br><em>Fix the right roads first.</em></h1>
+  <p class="lead">Gladiators finds road damage from photos, puts it on the real city map, gives extra priority to busy roads and roads near hospitals, schools and colleges, and picks the repairs that remove the most risk within a fixed government budget.</p>
+  <div class="cta"><a class="btn dark" href="#planner">Open the live planner</a><a class="btn ghost" href="#how">How it works</a></div>
+  <div class="lane" aria-hidden="true"></div>
+</div></section>
+
+<section class="sec" id="problem"><div class="wrap">
+  <div class="eyebrow">The problem</div>
+  <h2>A city can't fix every road at once</h2>
+  <p class="lead">Road departments get a fixed budget every year, but damaged roads always cost more than that. Someone has to decide which roads come first, and today that is often "whoever complained first".</p>
+  <div class="cards">
+    <div><div class="n">1</div><h3>Fixed budget</h3><p>The government gives a set amount. Everything above it waits for next year.</p></div>
+    <div><div class="n">2</div><h3>Where is the damage?</h3><p>Cracks and potholes must be found and located on the map before anyone can plan repairs.</p></div>
+    <div><div class="n">3</div><h3>Which road matters?</h3><p>A pothole on a busy road near a hospital is more urgent than one on a quiet lane.</p></div>
+  </div>
+</div></section>
+
+<section class="sec alt" id="how"><div class="wrap">
+  <div class="eyebrow">Our solution</div>
+  <h2>How it works</h2>
+  <p class="lead">Five steps, from a road photo to a ranked repair list.</p>
+  <div class="steps5">
+    <div><div class="n">1</div><h3>Detect</h3><p>YOLOv8 finds cracks and potholes in road photos (D00, D10, D20, D40).</p></div>
+    <div><div class="n">2</div><h3>Locate</h3><p>The photo's GPS puts each damage on the exact street of the city map.</p></div>
+    <div><div class="n">3</div><h3>Weight</h3><p>Traffic level High / Medium / Low from the road type, plus extra priority near hospitals, schools and colleges.</p></div>
+    <div><div class="n">4</div><h3>Optimize</h3><p>A 0/1 knapsack picks the repairs that remove the most risk without crossing the budget.</p></div>
+    <div><div class="n">5</div><h3>Plan</h3><p>Map, ranked list, and a downloadable dataset for the road department.</p></div>
+  </div>
+</div></section>
+
+<section class="app-sec" id="planner"><div class="wrap">
+  <div class="eyebrow">Live demo</div>
+  <h2 style="font-size:clamp(32px,4.4vw,52px);margin:6px 0 10px">Live planner</h2>
+  <p class="lead">Type a city, set the budget, and see which repairs get done. Load a survey CSV to use real damage.</p>
+</div>
+<div class="app-box">
+<header>
+  <b style="font-family:var(--display);font-size:20px;text-transform:uppercase">City</b>
+  <form class="city" id="city-form">
+    <input id="city" type="text" value="Chennai" aria-label="City or town name" placeholder="Any city or town">
+    <button class="btn dark" type="submit">Load city</button>
+    <button class="btn" type="button" id="me" title="Use my GPS location">📍 My location</button>
+  </form>
+  <div class="search">
+    <input id="q" type="search" placeholder="Search a street, area, hospital, school…" autocomplete="off" aria-label="Search">
+    <button class="btn" id="go" type="button">Search</button>
+    <div class="sugg" id="sugg" hidden></div>
+  </div>
+</header>
+<div class="banner" id="banner">Type any city or town and press Load city. Streets, hospitals, schools and colleges are real OpenStreetMap data. Damage points are simulated detections on those streets until you load a real survey.</div>
+
+<div class="layout">
+  <aside>
+    <div class="blk">
+      <h3>1 · Budget</h3>
+      <label class="l" for="budget">Government budget (₹ lakh)</label>
+      <div class="budget-row">
+        <input type="range" id="budget" min="1" max="300" step="1" value="25">
+        <input type="number" id="budget-n" min="1" max="5000" step="1" value="25" aria-label="Budget in lakh">
+      </div>
+      <div class="big num" id="budget-txt">₹25 lakh</div>
+    </div>
+
+    <div class="blk">
+      <h3>Report damage with GPS</h3>
+      <p class="note" style="margin:0 0 10px">Stand next to the damage and tap the button. Your phone's GPS saves the exact spot. Works best on a phone, outdoors.</p>
+      <div class="grid3" style="grid-template-columns:1fr 1fr">
+        <label class="l" for="rep-type">Damage type</label><label class="l" for="rep-size">Size</label>
+        <select id="rep-type"><option value="3">D40 Pothole</option><option value="2">D20 Alligator crack</option><option value="1">D10 Transverse crack</option><option value="0">D00 Longitudinal crack</option></select>
+        <select id="rep-size"><option value="0.6">Small</option><option value="1" selected>Medium</option><option value="1.8">Large</option></select>
+      </div>
+      <label class="l" for="rep-photo" style="margin-top:8px">Photo (optional)</label>
+      <input type="file" id="rep-photo" accept="image/*" capture="environment" style="font-size:12px;max-width:100%">
+      <div class="row" style="margin-top:10px"><button class="btn dark" type="button" id="rep">📍 Report damage here</button></div>
+      <p class="status" id="rep-st"></p>
+      <label class="row" style="margin-top:10px;font-size:13px;gap:6px"><input type="checkbox" id="sim" checked> Show simulated damage too</label>
+    </div>
+
+    <div class="blk">
+      <h3>2 · Priority for public places</h3>
+      <div class="grid3">
+        <span class="h">Damage near</span><span class="h">Extra priority</span><span class="h">Within</span>
+        <span><span class="badge b-h">H</span>Hospital</span><input type="number" id="bh" min="0" max="300" step="10" value="60" aria-label="Hospital extra priority %"><input type="number" id="rh" min="50" max="2000" step="50" value="500" aria-label="Hospital radius m">
+        <span><span class="badge b-s">S</span>School</span><input type="number" id="bs" min="0" max="300" step="10" value="40" aria-label="School extra priority %"><input type="number" id="rs" min="50" max="2000" step="50" value="300" aria-label="School radius m">
+        <span><span class="badge b-c">C</span>College</span><input type="number" id="bc" min="0" max="300" step="10" value="30" aria-label="College extra priority %"><input type="number" id="rc" min="50" max="2000" step="50" value="400" aria-label="College radius m">
+      </div>
+      <p class="note">Extra priority in %, distance in metres. A damage point near both a hospital and a school gets both bonuses (up to +150%). Ambulance routes and children's safety come first.</p>
+    </div>
+
+    <div class="blk">
+      <h3>3 · Results</h3>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Damage points</div><div class="v num" id="k-n">–</div></div>
+        <div class="kpi"><div class="k">Cost to fix all</div><div class="v num" id="k-all">–</div></div>
+        <div class="kpi"><div class="k">Repairs funded</div><div class="v num" id="k-f">–</div><div class="d" id="k-f-d"></div></div>
+        <div class="kpi"><div class="k">Risk removed</div><div class="v num" id="k-r">–</div><div class="d" id="k-r-d"></div></div>
+      </div>
+      <p class="note" id="used"></p>
+      <div class="lvl" id="fac-k"></div>
+      <div class="lvl" id="lvl"></div>
+    </div>
+
+    <div class="blk">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <h3 style="margin:0">4 · Priority list</h3>
+        <div class="tabs" role="tablist"><button type="button" data-t="roads" class="on">Streets</button><button type="button" data-t="fac">Public places</button><button type="button" data-t="areas">Areas</button></div>
+      </div>
+      <div class="tbl"><table><thead id="thead"></thead><tbody id="tbl"></tbody></table></div>
+      <p class="note">Click a row to zoom to it.</p>
+    </div>
+
+    <div class="blk">
+      <h3>5 · Repair rates (approx.)</h3>
+      <div class="grid2" id="rates"></div>
+      <p class="note">Estimated cost of one repair of average size, labour and material included.</p>
+    </div>
+
+    <div class="blk">
+      <h3>6 · Dataset</h3>
+      <div class="row">
+        <button class="btn" type="button" id="dl" disabled>Download dataset CSV</button>
+        <label class="btn ghost" for="csv">Load CSV</label><input type="file" id="csv" accept=".csv,text/csv" hidden>
+        <button class="btn ghost" type="button" id="reset" disabled>Regenerate</button>
+      </div>
+      <p class="status" id="csv-st"></p>
+      <p class="note">One row per damage point: GPS, street, road class, traffic level, area, nearest hospital / school / college with distance, priority factor, damage type, cost, risk and decision. Your own survey needs at least <b>lat, lon, type</b>.</p>
+    </div>
+
+    <div class="blk">
+      <h3>How it decides</h3>
+      <p class="note" style="margin:0"><b>Traffic level</b> comes from the road class: highways and main roads <span class="chip High">High</span>, secondary and tertiary roads <span class="chip Medium">Medium</span>, residential streets <span class="chip Low">Low</span>.<br><br><b>Risk</b> = damage weight × size × traffic weight (1.0 / 0.7 / 0.4) × public-place factor. A 0/1 knapsack picks the repairs that remove the most risk within the budget.</p>
+    </div>
+  </aside>
+
+  <div class="map-wrap">
+    <div id="map" role="application" aria-label="City map with streets, public places and road damage"></div>
+    <div class="legend" id="legend"></div>
+    <div class="loading" id="loading"><div><b id="load-title">Loading</b><span id="load-msg">Starting…</span>
+      <div class="row" style="justify-content:center;margin-top:12px" id="load-btns" hidden><button class="btn" type="button" id="retry">Try again</button><label class="btn ghost" for="csv">Load saved dataset</label></div></div></div>
+  </div>
+</div>
+
+</div></section>
+
+<section class="sec" id="model"><div class="wrap">
+  <div class="eyebrow">Detection accuracy</div>
+  <h2>Model results</h2>
+  <p class="lead">mAP@50 on 1,632 validation images of the RDD2022 dataset (Norway roads).</p>
+  <div class="two">
+    <div class="panel"><div class="panel-h"><h3>Model comparison</h3></div><div class="bars">
+      <div class="bar-row"><span>Our YOLOv8s, 18 epochs</span><div class="bar-track"><div class="bar-fill" style="width:27.6%"></div></div><span class="bar-val">0.138</span></div>
+      <div class="bar-row"><span>Pretrained YOLOv8s, 640 px</span><div class="bar-track"><div class="bar-fill" style="width:48%"></div></div><span class="bar-val">0.240</span></div>
+      <div class="bar-row"><span>Pretrained YOLOv8s, 1024 px</span><div class="bar-track"><div class="bar-fill best" style="width:53%"></div></div><span class="bar-val">0.265</span></div>
+    </div></div>
+    <div class="panel"><div class="panel-h"><h3>Damage types</h3></div>
+      <table class="ptable"><thead><tr><th>Code</th><th>Damage</th><th>Looks like</th><th class="r">Weight</th></tr></thead><tbody>
+        <tr><td><b>D00</b></td><td>Longitudinal crack</td><td>Along the road</td><td class="r">0.4</td></tr>
+        <tr><td><b>D10</b></td><td>Transverse crack</td><td>Across the road</td><td class="r">0.5</td></tr>
+        <tr><td><b>D20</b></td><td>Alligator crack</td><td>Crocodile-skin pattern</td><td class="r">0.8</td></tr>
+        <tr><td><b>D40</b></td><td>Pothole</td><td>A hole in the road</td><td class="r">1.0</td></tr>
+      </tbody></table></div>
+  </div>
+  <p class="lead" style="margin-top:18px;font-size:14px">The pretrained model is weak on potholes because the Norway images have very few. More pothole data from Indian roads is the next step.</p>
+</div></section>
+
+<section class="sec alt" id="data"><div class="wrap">
+  <div class="eyebrow">Dataset</div>
+  <h2>Our road damage dataset</h2>
+  <p class="lead">We survey roads with a phone camera (GPS on). YOLO finds the damage in each photo, and every damage point becomes one row. The planner adds the street, traffic level and nearest hospital, school and college.</p>
+  <div class="two">
+    <div class="panel"><div class="panel-h"><h3>From the survey</h3></div>
+      <table class="ptable"><tbody>
+        <tr><td><b>latitude, longitude</b></td><td>GPS of the photo</td></tr>
+        <tr><td><b>type</b></td><td>D00 / D10 / D20 / D40</td></tr>
+        <tr><td><b>size</b></td><td>Box size, 1 = average</td></tr>
+        <tr><td><b>confidence</b></td><td>How sure the model is</td></tr>
+        <tr><td><b>photo</b></td><td>Photo file, as proof</td></tr>
+      </tbody></table></div>
+    <div class="panel"><div class="panel-h"><h3>Added by the planner</h3></div>
+      <table class="ptable"><tbody>
+        <tr><td><b>street_name, traffic_level</b></td><td>From OpenStreetMap road type</td></tr>
+        <tr><td><b>nearest hospital / school / college</b></td><td>Name and distance in metres</td></tr>
+        <tr><td><b>public_place_factor</b></td><td>Extra priority</td></tr>
+        <tr><td><b>repair_cost_inr, risk_score</b></td><td>Cost and priority</td></tr>
+        <tr><td><b>decision</b></td><td>Repair now / Waiting</td></tr>
+      </tbody></table></div>
+  </div>
+</div></section>
+
+<section class="sec team" id="team"><div class="wrap">
+  <div class="eyebrow" style="color:#c9cdd1">The team</div>
+  <h2>Glad<span>i</span>ators</h2>
+  <p class="lead">A budget-aware road repair planner: computer vision to find the damage, real maps to place it, and an optimizer to decide what to fix first.</p>
+  <div class="stack"><span>YOLOv8 · Ultralytics</span><span>RDD2022</span><span>Google Colab · T4 GPU</span><span>Python · pandas · NumPy</span><span>0/1 knapsack</span><span>OpenStreetMap</span><span>Leaflet</span><span>HTML · CSS · JavaScript</span></div>
+</div></section>
+<div class="foot">Team Gladiators · HTH-CV-07 · Map data © OpenStreetMap contributors, tiles © Esri</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+/* ---------------- settings ---------------- */
+const CLASS_INFO={motorway:['High',45000],trunk:['High',40000],primary:['High',30000],motorway_link:['High',30000],trunk_link:['High',30000],primary_link:['High',25000],
+  secondary:['Medium',15000],secondary_link:['Medium',12000],tertiary:['Medium',8000],tertiary_link:['Medium',6000],
+  unclassified:['Low',3000],residential:['Low',2000],living_street:['Low',1000]};
+const LEVEL={High:{w:1.0,color:'#b3261e',width:4.5,per_km:2.2},Medium:{w:0.7,color:'#e08a00',width:3,per_km:1.5},Low:{w:0.4,color:'#9aa6b2',width:1.4,per_km:0.35}};
+const TYPES=[
+ {code:"D00",name:"Longitudinal crack",w:0.4,rate:3000,color:"#3f6fb0"},
+ {code:"D10",name:"Transverse crack",w:0.5,rate:2500,color:"#7d5bd6"},
+ {code:"D20",name:"Alligator crack",w:0.8,rate:15000,color:"#e08a00"},
+ {code:"D40",name:"Pothole",w:1.0,rate:6000,color:"#c7382a"}
+];
+const FAC={h:{label:'Hospital',letter:'H',color:'#c2185b'},s:{label:'School',letter:'S',color:'#1f63b8'},c:{label:'College',letter:'C',color:'#6a3fc0'}};
+const ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+
+const $=id=>document.getElementById(id);
+const rs=v=>'₹'+Math.round(v).toLocaleString('en-IN');
+const lakh=v=>v>=1e7?'₹'+(v/1e7).toFixed(2)+' Cr':'₹'+(v/1e5).toFixed(1)+' L';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const hash=s=>{let h=2166136261;for(const ch of s)h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0;};
+let K=1;
+const dist=(a,b,c,d)=>Math.hypot(a-c,(b-d)*K)*111320;
+
+/* ---------------- state ---------------- */
+let CITY='',BBOX=null,ROADS=[],FACS=[],PLACES=[],PTS=[],budget=25e5,funded=new Set(),worst=new Set(),tab='roads',seedBump=0;
+const BON={h:{b:60,r:500},s:{b:40,r:300},c:{b:30,r:400}};
+
+/* ---------------- map ---------------- */
+const map=L.map('map',{preferCanvas:true}).setView([9.925,78.12],13);
+const street=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri · Data © OpenStreetMap contributors'});
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri'});
+const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});
+street.addTo(map);
+const roadLayer=L.layerGroup().addTo(map),facLayer=L.layerGroup().addTo(map),ptLayer=L.layerGroup().addTo(map),placeLayer=L.layerGroup().addTo(map);
+L.control.layers({'Street map':street,'Satellite':sat,'OpenStreetMap':osm},{'Traffic on roads':roadLayer,'Hospitals, schools, colleges':facLayer,'Damage points':ptLayer,'Area names':placeLayer}).addTo(map);
+let searchMarker=null;
+map.on('zoomend',()=>{const z=map.getZoom();if(z<14)map.removeLayer(placeLayer);else if(!map.hasLayer(placeLayer))map.addLayer(placeLayer);
+  if(z<13)map.removeLayer(facLayer);else if(!map.hasLayer(facLayer))map.addLayer(facLayer);});
+
+/* ---------------- loading a city ---------------- */
+function showLoad(title,msg,err){$('loading').hidden=false;$('load-title').textContent=title;$('load-msg').textContent=msg;$('load-btns').hidden=!err;}
+async function geocode(name){
+  for(const q of [name+', India',name]){
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
+    const j=await r.json();
+    if(j.length)return j[0];
+  }
+  return null;
+}
+function clipBox(g){
+  let s=+g.boundingbox[0],n=+g.boundingbox[1],w=+g.boundingbox[2],e=+g.boundingbox[3];
+  const cy=+g.lat,cx=+g.lon,MAX=0.09,MIN=0.03;
+  let hy=Math.min(MAX,Math.max(MIN,(n-s)/2)),hx=Math.min(MAX,Math.max(MIN,(e-w)/2));
+  return {box:[cy-hy,cx-hx,cy+hy,cx+hx],clipped:(n-s)/2>MAX||(e-w)/2>MAX};
+}
+async function overpass(box){
+  const b=box.map(v=>v.toFixed(4)).join(',');
+  const q=`[out:json][timeout:150];
+(way["highway"~"^(motorway|trunk|primary|secondary|tertiary|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link|unclassified|residential|living_street)$"](${b});)->.r;
+(nwr["amenity"~"^(hospital|clinic|school|college|university)$"](${b});nwr["healthcare"="hospital"](${b});)->.f;
+(node["place"~"^(suburb|neighbourhood|quarter|village|town|hamlet|city_block)$"](${b});)->.p;
+.r out geom;.f out center;.p out body;`;
+  let lastErr;
+  for(const url of ENDPOINTS){
+    try{
+      showLoad('Loading '+CITY,'Downloading streets, hospitals, schools and colleges from OpenStreetMap ('+new URL(url).host+'). This takes 10–60 seconds.');
+      const res=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      return await res.json();
+    }catch(e){lastErr=e;console.warn('Overpass failed',url,e);}
+  }
+  throw lastErr||new Error('download failed');
+}
+function parseOSM(j){
+  const roads=[],facs=[],places=[],seen=new Set();
+  for(const e of j.elements||[]){
+    const t=e.tags||{};
+    if(e.type==='way'&&t.highway&&e.geometry){
+      const ci=CLASS_INFO[t.highway];if(!ci||e.geometry.length<2)continue;
+      const c=e.geometry.map(g=>[+g.lat.toFixed(5),+g.lon.toFixed(5)]);
+      let len=0;for(let i=1;i<c.length;i++)len+=dist(c[i-1][0],c[i-1][1],c[i][0],c[i][1]);
+      roads.push({name:(t.name||t['name:en']||t.ref||'').trim(),hw:t.highway,level:ci[0],aadt:ci[1],c,len,mid:c[Math.floor(c.length/2)]});
+    }else if(t.amenity||t.healthcare){
+      const lat=e.lat!=null?e.lat:e.center&&e.center.lat,lon=e.lon!=null?e.lon:e.center&&e.center.lon;
+      if(lat==null)continue;
+      const a=t.amenity||'hospital';
+      const k=(a==='hospital'||a==='clinic'||t.healthcare==='hospital')?'h':a==='school'?'s':'c';
+      const name=(t.name||t['name:en']||(FAC[k].label+' (unnamed)')).trim();
+      const key=k+name+lat.toFixed(3)+lon.toFixed(3);if(seen.has(key))continue;seen.add(key);
+      facs.push({k,name,lat,lon,clinic:a==='clinic'});
+    }else if(t.place&&e.lat!=null&&t.name){
+      places.push({name:t.name,lat:e.lat,lon:e.lon,kind:t.place});
+    }
+  }
+  return {roads,facs,places};
+}
+async function loadCity(name){
+  name=name.trim();if(!name)return;
+  CITY=name;
+  try{
+    showLoad('Finding '+name,'Looking up the city on OpenStreetMap…');
+    const cacheKey='gladiators_city_v2_'+name.toLowerCase();
+    let data=null;
+    try{const s=localStorage.getItem(cacheKey);if(s)data=JSON.parse(s);}catch(_){}
+    if(!data){
+      const g=await geocode(name);
+      if(!g){showLoad('City not found',`No place called “${name}” was found. Check the spelling, or add the state, e.g. “Karaikudi, Tamil Nadu”.`,true);return;}
+      const {box,clipped}=clipBox(g);
+      K=Math.cos((box[0]+box[2])/2*Math.PI/180);
+      const p=parseOSM(await overpass(box));
+      data={name,display:g.display_name,box,clipped,...p};
+      try{localStorage.setItem(cacheKey,JSON.stringify(data));}catch(_){}
+    }
+    try{localStorage.setItem('gladiators_last_city',name);}catch(_){}
+    useData(data,null);
+  }catch(err){
+    console.error(err);
+    showLoad('Could not load '+name,'The map data could not be downloaded. Check the internet connection and try again, or load a dataset CSV you saved earlier.',true);
+  }
+}
+let meMarker=null,meCircle=null;
+function getPos(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation)return rej(new Error('This browser cannot read GPS.'));
+    navigator.geolocation.getCurrentPosition(p=>res(p.coords),e=>rej(new Error(e.code===1?'Location permission was denied. Allow location for this page in the browser settings.':'Could not get your GPS position. Go outdoors or turn on Location, then try again.')),{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  });
+}
+function showMe(c){
+  if(meMarker){map.removeLayer(meMarker);map.removeLayer(meCircle);}
+  meCircle=L.circle([c.latitude,c.longitude],{radius:Math.max(10,c.accuracy||30),color:'#1f63b8',weight:1,fillColor:'#1f63b8',fillOpacity:.12,interactive:false}).addTo(map);
+  meMarker=L.circleMarker([c.latitude,c.longitude],{radius:8,color:'#fff',weight:3,fillColor:'#1f63b8',fillOpacity:1}).bindPopup(`<div class="pop"><h4>You are here</h4>GPS accuracy about ${Math.round(c.accuracy||0)} m<br>${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)}</div>`).addTo(map);
+}
+async function loadAtMe(){
+  try{
+    showLoad('Finding you','Reading your GPS location. Allow location access if the browser asks.');
+    const c=await getPos();
+    let label='My area';
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=14&lat=${c.latitude}&lon=${c.longitude}`);const j=await r.json();const a=j.address||{};
+      label=[a.suburb||a.neighbourhood||a.village||a.town,a.city||a.town||a.county].filter(Boolean).filter((v,i,x)=>x.indexOf(v)===i).join(', ')||j.display_name||label;}catch(_){}
+    CITY=label;$('city').value=label;
+    const box=[c.latitude-0.03,c.longitude-0.035,c.latitude+0.03,c.longitude+0.035];
+    K=Math.cos(c.latitude*Math.PI/180);
+    const p=parseOSM(await overpass(box));
+    useData({name:label,display:label+' (6 km around your GPS position)',box,clipped:false,...p},c);
+  }catch(err){
+    console.error(err);
+    showLoad('Could not use your location',err.message||'The map data could not be downloaded.',true);
+  }
+}
+function useData(data,me){
+  PTS=[];funded=new Set();
+  BBOX=data.box;K=Math.cos((BBOX[0]+BBOX[2])/2*Math.PI/180);
+  ROADS=data.roads;FACS=data.facs;PLACES=data.places;
+  if(!ROADS.length){showLoad('No streets found','OpenStreetMap has no mapped streets for this place. Try a nearby bigger town.',true);return;}
+  map.fitBounds([[BBOX[0],BBOX[1]],[BBOX[2],BBOX[3]]]);
+  drawRoads();drawFacs();drawPlaces();buildIndex();
+  PTS=$('sim').checked?simulate():[];
+  $('loading').hidden=true;$('dl').disabled=false;$('reset').disabled=false;
+  const km=ROADS.reduce((s,r)=>s+r.len,0)/1000,cnt=k=>FACS.filter(f=>f.k===k).length;
+  $('banner').textContent=`${data.display||data.name}: ${ROADS.length.toLocaleString('en-IN')} real streets (${Math.round(km).toLocaleString('en-IN')} km), ${cnt('h')} hospitals/clinics, ${cnt('s')} schools, ${cnt('c')} colleges from OpenStreetMap.`+(data.clipped?' Large city: showing the central 20 km × 20 km.':'')+($('sim').checked?' Damage points are simulated until you load or report real damage.':' No simulated damage: report damage with GPS or load a survey.');
+  $('csv-st').textContent='';
+  compute();
+  if(me){showMe(me);map.setView([me.latitude,me.longitude],16);meMarker.openPopup();}
+}
+$('me').addEventListener('click',loadAtMe);
+$('sim').addEventListener('change',()=>{if(!ROADS.length)return;PTS=PTS.filter(p=>p.source!=='simulated');if($('sim').checked)PTS=simulate().concat(PTS);compute();});
+
+/* ---------------- field report with GPS ---------------- */
+$('rep').addEventListener('click',async()=>{
+  const st=$('rep-st');
+  if(!ROADS.length){st.textContent='Load your city or use "My location" first.';return;}
+  st.textContent='Getting GPS position…';$('rep').disabled=true;
+  try{
+    const c=await getPos();showMe(c);
+    const t=+$('rep-type').value,size=+$('rep-size').value,file=$('rep-photo').files[0];
+    const road=snapToRoad(c.latitude,c.longitude);
+    const p=makePoint(c.latitude,c.longitude,t,size,road,'field report (GPS)');
+    p.acc=Math.round(c.accuracy||0);p.time=new Date().toISOString().slice(0,16).replace('T',' ');
+    if(file){p.photo=URL.createObjectURL(file);p.photoName=file.name;}
+    PTS.push(p);compute();
+    map.setView([c.latitude,c.longitude],17);
+    const i=PTS.length-1;setTimeout(()=>{if(PTS[i]&&PTS[i].marker)PTS[i].marker.openPopup();},300);
+    const n=PTS.filter(x=>x.source.startsWith('field')).length;
+    st.textContent=`Saved: ${TYPES[t].name} on ${p.road} (GPS ±${p.acc} m). ${n} field report${n>1?'s':''} so far. Download the dataset to keep them.`;
+    $('rep-photo').value='';
+  }catch(err){st.textContent=err.message;}
+  finally{$('rep').disabled=false;}
+});
+
+$('city-form').addEventListener('submit',e=>{e.preventDefault();loadCity($('city').value);});
+$('retry').addEventListener('click',()=>loadCity($('city').value));
+
+/* ---------------- drawing ---------------- */
+function drawRoads(){
+  roadLayer.clearLayers();
+  ['Low','Medium','High'].forEach(lv=>{const S=LEVEL[lv];
+    ROADS.filter(r=>r.level===lv).forEach(r=>L.polyline(r.c,{color:S.color,weight:S.width,opacity:lv==='Low'?.55:.8,interactive:lv!=='Low'})
+      .bindTooltip(`${esc(r.name||'Unnamed road')} · ${lv} traffic`,{sticky:true}).addTo(roadLayer));});
+}
+function facIcon(k,big){const F=FAC[k],s=big?22:18;return L.divIcon({className:'',html:`<div class="fac-icon" style="width:${s}px;height:${s}px;background:${F.color}">${F.letter}</div>`,iconSize:[s,s],iconAnchor:[s/2,s/2]});}
+function drawFacs(){
+  facLayer.clearLayers();
+  FACS.forEach(f=>{f.marker=L.marker([f.lat,f.lon],{icon:facIcon(f.k,f.k==='h'&&!f.clinic),zIndexOffset:f.k==='h'?500:0}).addTo(facLayer);});
+}
+function drawPlaces(){
+  placeLayer.clearLayers();
+  PLACES.forEach(p=>L.marker([p.lat,p.lon],{icon:L.divIcon({className:'',html:'',iconSize:[0,0]}),interactive:false})
+    .bindTooltip(p.name,{permanent:true,direction:'top',className:'place-label'}).addTo(placeLayer));
+}
+
+/* ---------------- damage (simulated on real streets) ---------------- */
+function pointOnRoad(r,t){let target=t*r.len,acc=0;
+  for(let i=1;i<r.c.length;i++){const a=r.c[i-1],b=r.c[i],d=dist(a[0],a[1],b[0],b[1]);
+    if(acc+d>=target){const f=d?(target-acc)/d:0;return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];}acc+=d;}
+  return r.c[r.c.length-1];}
+function nearestPlace(lat,lon){let b=null,bd=Infinity;for(const p of PLACES){const d=dist(lat,lon,p.lat,p.lon);if(d<bd){bd=d;b=p;}}return b&&bd<4000?b.name:CITY;}
+function simulate(){
+  const r=rng(hash(CITY.toLowerCase())+seedBump),pts=[];
+  const total=ROADS.reduce((s,x)=>s+LEVEL[x.level].per_km*x.len/1000,0),scale=total>2500?2500/total:1;
+  for(const road of ROADS){
+    const expected=LEVEL[road.level].per_km*road.len/1000*scale;
+    let n=Math.floor(expected);if(r()<expected-n)n++;
+    for(let i=0;i<n;i++){const u=r();const t=u<0.34?0:u<0.56?1:u<0.78?2:3;
+      const [lat,lon]=pointOnRoad(road,0.05+r()*0.9);
+      pts.push(makePoint(lat,lon,t,+(0.6+r()*1.4).toFixed(2),road,'simulated'));}
+  }
+  return pts;
+}
+function makePoint(lat,lon,t,size,road,source){
+  const p={lat,lon,t,size,source,road:road?(road.name||'Unnamed road'):'Unknown road',hw:road?road.hw:'unknown',level:road?road.level:'Medium',aadt:road?road.aadt:8000,area:nearestPlace(lat,lon)};
+  nearFacilities(p);return p;
+}
+function nearFacilities(p){
+  p.near={h:null,s:null,c:null};
+  for(const f of FACS){
+    if(Math.abs(f.lat-p.lat)>0.02||Math.abs(f.lon-p.lon)>0.02)continue;
+    const d=dist(p.lat,p.lon,f.lat,f.lon);
+    if(d<=2000&&(!p.near[f.k]||d<p.near[f.k].d))p.near[f.k]={name:f.name,d:Math.round(d),f};
+  }
+}
+function snapToRoad(lat,lon){let best=null,bd=Infinity;
+  for(const r of ROADS){if(Math.abs(r.mid[0]-lat)>0.02||Math.abs(r.mid[1]-lon)>0.02)continue;
+    for(const q of r.c){const d=dist(lat,lon,q[0],q[1]);if(d<bd){bd=d;best=r;}}}
+  return bd<=120?best:null;}
+
+/* ---------------- priority + optimizer ---------------- */
+function facFactor(p){let b=0;for(const k of ['h','s','c'])if(p.near[k]&&p.near[k].d<=BON[k].r)b+=BON[k].b;return 1+Math.min(150,b)/100;}
+const inRange=(p,k)=>p.near[k]&&p.near[k].d<=BON[k].r;
+const costOf=p=>TYPES[p.t].rate*p.size;
+const riskOf=p=>TYPES[p.t].w*p.size*LEVEL[p.level].w*facFactor(p);
+function knapsack(items,B0){
+  const unit=Math.max(100,Math.ceil(B0/5000));
+  const c=items.map(p=>Math.max(1,Math.ceil(costOf(p)/unit))),B=Math.floor(B0/unit),n=items.length;
+  let dp=new Float64Array(B+1);const keep=new Uint8Array(n*(B+1));
+  for(let i=0;i<n;i++){const nd=dp.slice(),ci=c[i],v=riskOf(items[i]),off=i*(B+1);
+    for(let b=ci;b<=B;b++){const x=dp[b-ci]+v;if(x>nd[b]){nd[b]=x;keep[off+b]=1;}}dp=nd;}
+  const ch=new Set();let b=B;for(let i=n-1;i>=0;i--){if(keep[i*(B+1)+b]){ch.add(i);b-=c[i];}}
+  return ch;
+}
+function worstFirst(items,B){const ch=new Set();let s=0;
+  items.map((p,i)=>i).sort((x,y)=>TYPES[items[y].t].w*items[y].size-TYPES[items[x].t].w*items[x].size)
+    .forEach(i=>{const c=costOf(items[i]);if(s+c<=B){ch.add(i);s+=c;}});return ch;}
+
+/* ---------------- results ---------------- */
+let G={roads:[],fac:[],areas:[]};
+function compute(){
+  if(!PTS.length){ptLayer.clearLayers();['k-n','k-f','k-r'].forEach(id=>$(id).textContent='0');$('k-all').textContent='₹0';['k-f-d','k-r-d'].forEach(id=>$(id).textContent='');$('used').textContent='No damage points yet.';$('fac-k').innerHTML='';$('lvl').innerHTML='';$('tbl').innerHTML='';return;}
+  funded=knapsack(PTS,budget);worst=worstFirst(PTS,budget);
+  const tot=PTS.reduce((s,p)=>s+riskOf(p),0)||1,all=PTS.reduce((s,p)=>s+costOf(p),0);
+  const rF=[...funded].reduce((s,i)=>s+riskOf(PTS[i]),0),rW=[...worst].reduce((s,i)=>s+riskOf(PTS[i]),0);
+  const used=[...funded].reduce((s,i)=>s+costOf(PTS[i]),0);
+  $('k-n').textContent=PTS.length.toLocaleString('en-IN');$('k-all').textContent=lakh(all);
+  $('k-f').textContent=funded.size+' / '+PTS.length;
+  const df=funded.size-worst.size;$('k-f-d').textContent=(df>=0?'+':'')+df+' vs worst-first';
+  $('k-r').textContent=(rF/tot*100).toFixed(1)+'%';
+  let dr=(rF-rW)/tot*100;if(Math.abs(dr)<0.05)dr=0;$('k-r-d').textContent=(dr>=0?'+':'')+dr.toFixed(1)+' pts vs worst-first';
+  $('used').textContent=`${rs(used)} spent · ${rs(budget-used)} left · `+(all>budget?`${lakh(all-budget)} more needed to fix everything`:'budget covers everything');
+  $('fac-k').innerHTML=['h','s','c'].map(k=>{const idx=PTS.map((p,i)=>i).filter(i=>inRange(PTS[i],k)),f=idx.filter(i=>funded.has(i)).length;
+    return `<div><span class="badge b-${k}">${FAC[k].letter}</span><small>near ${FAC[k].label.toLowerCase()}s</small><b class="num">${f} / ${idx.length}</b><small>funded</small></div>`;}).join('');
+  $('lvl').innerHTML=['High','Medium','Low'].map(lv=>{const idx=PTS.map((p,i)=>i).filter(i=>PTS[i].level===lv),f=idx.filter(i=>funded.has(i)).length;
+    return `<div><span class="chip ${lv}">${lv} traffic</span><b class="num">${f} / ${idx.length}</b><small>funded</small></div>`;}).join('');
+  // groups
+  const gr=new Map(),ga=new Map(),gf=new Map();
+  PTS.forEach((p,i)=>{
+    const F=funded.has(i),c=costOf(p),r=riskOf(p);
+    const kr=p.road+'|'+p.level;if(!gr.has(kr))gr.set(kr,{name:p.road,level:p.level,n:0,f:0,cost:0,risk:0,lat:0,lon:0,h:0,s:0,c:0});
+    const x=gr.get(kr);x.n++;x.cost+=c;x.risk+=r;x.lat+=p.lat;x.lon+=p.lon;if(F)x.f++;['h','s','c'].forEach(k=>{if(inRange(p,k))x[k]=1;});
+    if(!ga.has(p.area))ga.set(p.area,{name:p.area,n:0,f:0,cost:0,risk:0,lat:0,lon:0});
+    const y=ga.get(p.area);y.n++;y.cost+=c;y.risk+=r;y.lat+=p.lat;y.lon+=p.lon;if(F)y.f++;
+    ['h','s','c'].forEach(k=>{if(inRange(p,k)){const fo=p.near[k].f||{name:p.near[k].name,k,lat:p.lat,lon:p.lon};const kk=k+fo.name+(fo.lat||0).toFixed?.(4);
+      if(!gf.has(kk))gf.set(kk,{fac:fo,k,n:0,f:0,cost:0,risk:0});const z=gf.get(kk);z.n++;z.cost+=c;z.risk+=r;if(F)z.f++;}});
+  });
+  G.roads=[...gr.values()].map(x=>({...x,lat:x.lat/x.n,lon:x.lon/x.n})).sort((a,b)=>b.risk-a.risk);
+  G.areas=[...ga.values()].map(x=>({...x,lat:x.lat/x.n,lon:x.lon/x.n})).sort((a,b)=>b.risk-a.risk);
+  const ord={h:0,s:1,c:2};G.fac=[...gf.values()].sort((a,b)=>ord[a.k]-ord[b.k]||b.risk-a.risk);
+  drawPoints();drawTable();drawLegend();
+}
+const statusChip=x=>x.f===x.n?'<span class="chip full">Funded</span>':x.f>0?`<span class="chip part">${x.f}/${x.n}</span>`:'<span class="chip wait">Waiting</span>';
+const nearBadges=x=>['h','s','c'].filter(k=>x[k]).map(k=>`<span class="badge b-${k}" title="Near ${FAC[k].label.toLowerCase()}">${FAC[k].letter}</span>`).join('');
+function drawTable(){
+  if(tab==='roads'){
+    $('thead').innerHTML='<tr><th>Street</th><th>Traffic</th><th>Near</th><th class="r">Dmg</th><th class="r">Cost</th><th>Status</th></tr>';
+    $('tbl').innerHTML=G.roads.slice(0,300).map((x,i)=>`<tr data-g="roads" data-i="${i}"><td>${esc(x.name)}</td><td><span class="chip ${x.level}">${x.level}</span></td><td style="white-space:nowrap">${nearBadges(x)}</td><td class="r num">${x.n}</td><td class="r num">${lakh(x.cost)}</td><td>${statusChip(x)}</td></tr>`).join('');
+  }else if(tab==='fac'){
+    $('thead').innerHTML='<tr><th>Public place</th><th class="r">Dmg nearby</th><th class="r">Cost</th><th>Status</th></tr>';
+    $('tbl').innerHTML=G.fac.map((x,i)=>`<tr data-g="fac" data-i="${i}"><td><span class="badge b-${x.k}">${FAC[x.k].letter}</span>${esc(x.fac.name)}</td><td class="r num">${x.n}</td><td class="r num">${lakh(x.cost)}</td><td>${statusChip(x)}</td></tr>`).join('')||'<tr><td colspan="4">No damage near hospitals, schools or colleges.</td></tr>';
+  }else{
+    $('thead').innerHTML='<tr><th>Area</th><th class="r">Dmg</th><th class="r">Cost</th><th>Status</th></tr>';
+    $('tbl').innerHTML=G.areas.map((x,i)=>`<tr data-g="areas" data-i="${i}"><td>${esc(x.name)}</td><td class="r num">${x.n}</td><td class="r num">${lakh(x.cost)}</td><td>${statusChip(x)}</td></tr>`).join('');
+  }
+}
+function drawPoints(){
+  ptLayer.clearLayers();
+  PTS.forEach((p,i)=>{
+    const f=funded.has(i),T=TYPES[p.t];
+    const nearTxt=['h','s','c'].filter(k=>p.near[k]).map(k=>`<tr><td><span class="badge b-${k}">${FAC[k].letter}</span></td><td>${esc(p.near[k].name)} · ${p.near[k].d} m${inRange(p,k)?` <b>(+${BON[k].b}%)</b>`:''}</td></tr>`).join('');
+    p.marker=L.circleMarker([p.lat,p.lon],{radius:p.source.startsWith('field')?8:p.t===3?6:p.t===2?5:4,color:p.source.startsWith('field')?'#1f63b8':'#15181b',weight:p.source.startsWith('field')?3:1,fillColor:f?'#23824a':'#c7382a',fillOpacity:.9})
+      .bindPopup(`<div class="pop"><h4>${T.name}</h4><table>
+        <tr><td>Street</td><td><b>${esc(p.road)}</b></td></tr>
+        <tr><td>Traffic</td><td><span class="chip ${p.level}">${p.level}</span> ~${p.aadt.toLocaleString('en-IN')} vehicles/day</td></tr>
+        <tr><td>Area</td><td>${esc(p.area)}</td></tr>
+        ${nearTxt}
+        <tr><td>Priority</td><td>×${facFactor(p).toFixed(2)} for public places</td></tr>
+        <tr><td>Damage</td><td>${T.code} · size ${p.size}×</td></tr>
+        <tr><td>Cost</td><td>${rs(costOf(p))}</td></tr>
+        <tr><td>Decision</td><td><b style="color:${f?'#23824a':'#c7382a'}">${f?'Repair now':'Waiting'}</b></td></tr>
+        <tr><td>GPS</td><td>${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</td></tr>
+        <tr><td>Source</td><td>${esc(p.source)}${p.acc!=null?' · ±'+p.acc+' m':''}${p.time?' · '+esc(p.time):''}</td></tr></table>${p.photo?`<img src="${p.photo}" alt="Damage photo" style="width:220px;margin-top:6px;border:1px solid #d9ddd8">`:''}</div>`).addTo(ptLayer);
+  });
+  FACS.forEach(f=>{if(!f.marker)return;const idx=PTS.map((p,i)=>i).filter(i=>{const n=PTS[i].near[f.k];return n&&n.f===f&&n.d<=BON[f.k].r;});
+    const fn=idx.filter(i=>funded.has(i)).length;
+    f.marker.bindPopup(`<div class="pop"><h4>${esc(f.name)}</h4>${FAC[f.k].label}${f.clinic?' (clinic)':''}<br>Damage within ${BON[f.k].r} m: <b>${idx.length}</b> · funded: <b>${fn}</b><br>Extra priority: +${BON[f.k].b}%</div>`);});
+}
+function drawLegend(){
+  $('legend').innerHTML=`<div><b>Traffic</b></div>
+   <div><span class="ln" style="border-top-width:4px;border-top-color:${LEVEL.High.color}"></span>High</div>
+   <div><span class="ln" style="border-top-width:3px;border-top-color:${LEVEL.Medium.color}"></span>Medium</div>
+   <div><span class="ln" style="border-top-width:2px;border-top-color:${LEVEL.Low.color}"></span>Low</div>
+   <div style="margin-top:4px"><b>Public places</b></div>
+   ${['h','s','c'].map(k=>`<div><span class="badge b-${k}">${FAC[k].letter}</span>${FAC[k].label}</div>`).join('')}
+   <div style="margin-top:4px"><b>Damage</b></div>
+   <div><span class="dot" style="background:#23824a"></span>Repair now</div>
+   <div><span class="dot" style="background:#c7382a"></span>Waiting</div>`;
+}
+$('tbl').addEventListener('click',e=>{const tr=e.target.closest('tr[data-g]');if(!tr)return;const x=G[tr.dataset.g][+tr.dataset.i];
+  if(tr.dataset.g==='fac'){map.flyTo([x.fac.lat,x.fac.lon],17,{duration:.8});if(x.fac.marker)setTimeout(()=>x.fac.marker.openPopup(),850);}
+  else map.flyTo([x.lat,x.lon],16,{duration:.8});});
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));drawTable();}));
+
+/* ---------------- inputs ---------------- */
+let tmr;const later=()=>{clearTimeout(tmr);tmr=setTimeout(compute,150);};
+function setBudget(l,from){l=Math.max(1,Math.min(5000,+l||1));budget=l*1e5;
+  if(from!=='r')$('budget').value=Math.min(300,l);if(from!=='n')$('budget-n').value=l;
+  $('budget-txt').textContent=l>=100?'₹'+(l/100).toFixed(2)+' crore':'₹'+l+' lakh';later();}
+$('budget').addEventListener('input',e=>setBudget(e.target.value,'r'));
+$('budget-n').addEventListener('change',e=>setBudget(e.target.value,'n'));
+[['bh','h','b'],['rh','h','r'],['bs','s','b'],['rs','s','r'],['bc','c','b'],['rc','c','r']].forEach(([id,k,f])=>$(id).addEventListener('change',e=>{const v=+e.target.value;if(v>=0){BON[k][f]=v;later();}}));
+$('rates').innerHTML=TYPES.map((T,i)=>`<label for="rate${i}"><span class="dot" style="background:${T.color}"></span>${T.code} ${T.name}</label><input type="number" id="rate${i}" min="100" step="100" value="${T.rate}">`).join('');
+TYPES.forEach((T,i)=>$('rate'+i).addEventListener('change',e=>{const v=+e.target.value;if(v>0){T.rate=v;later();}}));
+
+/* ---------------- search ---------------- */
+let INDEX=[];
+function buildIndex(){
+  const m=new Map();
+  ROADS.forEach(r=>{if(!r.name)return;const k=r.name.toLowerCase(),x=m.get(k);if(!x||r.len>x.len)m.set(k,{label:r.name,kind:r.level+' traffic street',lat:r.mid[0],lon:r.mid[1],len:r.len,zoom:17,o:3});});
+  INDEX=PLACES.map(p=>({label:p.name,kind:'area',lat:p.lat,lon:p.lon,zoom:16,o:1}))
+    .concat(FACS.filter(f=>!/unnamed/.test(f.name)).map(f=>({label:f.name,kind:FAC[f.k].label,lat:f.lat,lon:f.lon,zoom:17,o:2,fac:f})))
+    .concat([...m.values()]);
+}
+const q=$('q'),sg=$('sugg');let act=-1,list=[];
+const nrm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+function suggest(){const v=nrm(q.value);if(!v){sg.hidden=true;return;}
+  list=INDEX.filter(x=>nrm(x.label).includes(v)).sort((a,b)=>a.o-b.o||nrm(a.label).indexOf(v)-nrm(b.label).indexOf(v)).slice(0,12);act=-1;
+  sg.innerHTML=list.map((x,i)=>`<div data-i="${i}"><span>${esc(x.label)}</span><small>${esc(x.kind)}</small></div>`).join('')+`<div data-web="1"><span>Search “${esc(q.value)}” in ${esc(CITY||'the city')}</span><small>OpenStreetMap</small></div>`;
+  sg.hidden=false;}
+function go(x){sg.hidden=true;q.value=x.label;map.flyTo([x.lat,x.lon],x.zoom,{duration:.8});
+  if(x.fac&&x.fac.marker){setTimeout(()=>x.fac.marker.openPopup(),850);return;}
+  if(searchMarker)map.removeLayer(searchMarker);
+  searchMarker=L.marker([x.lat,x.lon]).addTo(map).bindPopup(`<div class="pop"><h4>${esc(x.label)}</h4>${esc(x.kind)}</div>`).openPopup();}
+async function webSearch(text){sg.hidden=true;
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(text+', '+CITY));const j=await r.json();
+    if(!j.length){$('banner').textContent=`No place called “${text}” was found in ${CITY}. Check the spelling.`;return;}
+    go({label:text,kind:j[0].display_name,lat:+j[0].lat,lon:+j[0].lon,zoom:17});}
+  catch(_){$('banner').textContent='Place search needs an internet connection.';}}
+q.addEventListener('input',suggest);
+q.addEventListener('keydown',e=>{const items=[...sg.querySelectorAll('div')];
+  if(e.key==='ArrowDown')act=Math.min(items.length-1,act+1);else if(e.key==='ArrowUp')act=Math.max(0,act-1);
+  else if(e.key==='Enter'){e.preventDefault();const it=items[act<0?0:act];if(it&&!it.dataset.web&&list.length)go(list[+it.dataset.i]);else if(q.value.trim())webSearch(q.value.trim());return;}
+  else if(e.key==='Escape'){sg.hidden=true;return;}else return;
+  e.preventDefault();items.forEach((d,j)=>d.classList.toggle('act',j===act));});
+sg.addEventListener('mousedown',e=>{const d=e.target.closest('div[data-i],div[data-web]');if(!d)return;e.preventDefault();if(d.dataset.web)webSearch(q.value.trim());else go(list[+d.dataset.i]);});
+q.addEventListener('blur',()=>setTimeout(()=>sg.hidden=true,150));
+$('go').addEventListener('click',()=>{suggest();if(list.length)go(list[0]);else if(q.value.trim())webSearch(q.value.trim());});
+
+/* ---------------- dataset ---------------- */
+const cell=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+$('dl').addEventListener('click',()=>{
+  const head=['id','city','latitude','longitude','street_name','osm_road_class','traffic_level','est_vehicles_per_day','area',
+    'nearest_hospital','hospital_distance_m','nearest_school','school_distance_m','nearest_college','college_distance_m','public_place_factor',
+    'damage_code','damage_type','size_factor','repair_cost_inr','risk_score','decision','source','gps_accuracy_m','reported_at','photo_file'];
+  const rows=PTS.map((p,i)=>[i+1,CITY,p.lat.toFixed(6),p.lon.toFixed(6),p.road,p.hw,p.level,p.aadt,p.area,
+    p.near.h?.name||'',p.near.h?.d??'',p.near.s?.name||'',p.near.s?.d??'',p.near.c?.name||'',p.near.c?.d??'',facFactor(p).toFixed(2),
+    TYPES[p.t].code,TYPES[p.t].name,p.size,Math.round(costOf(p)),riskOf(p).toFixed(3),funded.has(i)?'Repair now':'Waiting',p.source,p.acc??'',p.time||'',p.photoName||''].map(cell).join(','));
+  const blob=new Blob([head.join(',')+'\n'+rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${CITY.toLowerCase().replace(/[^a-z0-9]+/g,'_')}_road_damage_dataset.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+});
+function parseCSV(text){const rows=[];let row=[],f='',qq=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(qq){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else qq=false;}else f+=c;}
+    else if(c==='"')qq=true;else if(c===','){row.push(f);f='';}else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}else if(c!=='\r')f+=c;}
+  if(f||row.length){row.push(f);rows.push(row);}return rows;}
+function typeIndex(v){const s=String(v).toLowerCase().trim();
+  if(/^[0-3]$/.test(s))return +s;if(s.includes('d40')||s.includes('pot'))return 3;if(s.includes('d20')||s.includes('allig'))return 2;
+  if(s.includes('d10')||s.includes('trans'))return 1;if(s.includes('d00')||s.includes('long'))return 0;return -1;}
+$('csv').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;const rd=new FileReader();
+  rd.onload=()=>{try{
+    const rows=parseCSV(rd.result),hdr=rows.shift().map(h=>h.trim().toLowerCase());
+    const fi=(...k)=>{for(const x of k){const i=hdr.indexOf(x);if(i>=0)return i;}for(const x of k){const i=hdr.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
+    const la=fi('latitude','lat'),lo=fi('longitude','lon','lng'),ty=fi('damage_code','type','cls','class'),sz=fi('size_factor','size');
+    const sn=fi('street_name'),lv=fi('traffic_level'),vd=fi('est_vehicles_per_day'),hw=fi('osm_road_class'),ci=fi('city');
+    if(la<0||lo<0||ty<0)throw new Error('The CSV needs latitude, longitude and damage type columns.');
+    const pts=[];let skipped=0;
+    if(!ROADS.length&&ci>=0&&rows[0]&&rows[0][ci])CITY=rows[0][ci];
+    rows.forEach(r=>{
+      if(!r.length||(r.length===1&&!r[0]))return;
+      const lat=parseFloat(r[la]),lon=parseFloat(r[lo]),t=typeIndex(r[ty]);
+      if(!isFinite(lat)||!isFinite(lon)||t<0){skipped++;return;}
+      K=Math.cos(lat*Math.PI/180);
+      const size=sz>=0&&isFinite(parseFloat(r[sz]))?Math.max(0.2,Math.min(5,parseFloat(r[sz]))):1;
+      let road=null;
+      if(sn>=0&&lv>=0&&['High','Medium','Low'].includes(r[lv]))road={name:r[sn],level:r[lv],aadt:+r[vd]||(CLASS_INFO[r[hw]]||[0,8000])[1],hw:hw>=0?r[hw]:'unknown'};
+      else if(ROADS.length)road=snapToRoad(lat,lon);
+      pts.push(makePoint(lat,lon,t,size,road,'loaded: '+file.name));
+    });
+    if(!pts.length)throw new Error('No readable rows were found. Check the latitude and longitude values.');
+    PTS=pts;$('loading').hidden=true;$('dl').disabled=false;
+    if(!ROADS.length){const b=L.latLngBounds(pts.map(p=>[p.lat,p.lon]));map.fitBounds(b.pad(0.1));}
+    $('csv-st').textContent=`Loaded ${pts.length} damage points from ${file.name}`+(skipped?` · ${skipped} rows skipped`:'')+(FACS.length?'':' · load the city to see hospitals, schools and colleges');
+    $('banner').textContent='Showing damage points from '+file.name+'.';
+    compute();
+  }catch(err){$('csv-st').textContent=err.message;}};
+  rd.readAsText(file);e.target.value='';
+});
+$('reset').addEventListener('click',()=>{seedBump++;PTS=simulate();$('csv-st').textContent='Generated a new simulated survey on the real streets.';compute();});
+
+drawLegend();
+let last='Chennai';try{last=localStorage.getItem('gladiators_last_city')||'Chennai';}catch(_){}
+$('city').value=last;loadCity(last);
+window.addEventListener('resize',()=>map.invalidateSize());
+})();
+</script>
+</body>
+</html>

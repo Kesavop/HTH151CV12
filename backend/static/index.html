@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gladiators Road Prioritizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#eef0ee; --surface:#ffffff; --surface-2:#e4e7e4; --ink:#15181b; --muted:#5b6268; --line:#cfd4d0;
+  --accent:#f2c230; --accent-ink:#9a6f00; --road:#c9cdc9; --road-edge:#b3b8b4;
+  --good:#2f8f55; --high:#cc3f30; --med:#d9801a; --low:#8a9096;
+  --good-bg:#e1f1e6; --high-bg:#f8e2df; --med-bg:#fbead6; --low-bg:#e9ebec;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#15171a; --surface:#1e2125; --surface-2:#272b30; --ink:#e9eae6; --muted:#9aa1a7; --line:#33383e;
+    --accent:#f2c230; --accent-ink:#f2c230; --road:#3a3f45; --road-edge:#474d54;
+    --good:#4cc07a; --high:#f0695a; --med:#f0a040; --low:#8d949a;
+    --good-bg:#1d3326; --high-bg:#3a2320; --med-bg:#3a2c1a; --low-bg:#2a2e33;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#15171a; --surface:#1e2125; --surface-2:#272b30; --ink:#e9eae6; --muted:#9aa1a7; --line:#33383e;
+  --accent:#f2c230; --accent-ink:#f2c230; --road:#3a3f45; --road-edge:#474d54;
+  --good:#4cc07a; --high:#f0695a; --med:#f0a040; --low:#8d949a;
+  --good-bg:#1d3326; --high-bg:#3a2320; --med-bg:#3a2c1a; --low-bg:#2a2e33;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px}
+a{color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:.95;text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* nav */
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--ink);color:var(--bg)}
+nav.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:.06em;text-decoration:none}
+.brand svg{flex:none}
+nav.top ul{display:flex;gap:18px;list-style:none;margin:0;padding:0;font-size:14px;font-weight:600;flex-wrap:wrap}
+nav.top ul a{text-decoration:none;opacity:.8}
+nav.top ul a:hover{opacity:1;color:var(--accent)}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:end}
+.hero h1{font-size:clamp(42px,6.2vw,84px)}
+.hero h1 em{font-style:normal;background:var(--accent);color:#15181b;padding:0 .12em}
+.hero p.lede{font-size:18px;max-width:52ch;color:var(--muted);margin:22px 0 0}
+.tag{display:inline-flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;border:1px solid var(--line);padding:4px 10px;margin-bottom:22px;background:var(--surface)}
+.tag b{color:var(--accent-ink)}
+.ledger{background:var(--surface);border:1px solid var(--line)}
+.ledger div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 18px;border-bottom:1px dashed var(--line)}
+.ledger div:last-child{border-bottom:0}
+.ledger span{color:var(--muted);font-size:14px}
+.ledger strong{font-family:var(--display);font-size:34px;font-weight:700}
+.ledger .gap strong{color:var(--high)}
+.lane{height:14px;margin-top:44px;background:var(--ink);position:relative;overflow:hidden}
+.lane::after{content:"";position:absolute;inset:5px 0;background:repeating-linear-gradient(90deg,var(--accent) 0 46px,transparent 46px 80px);animation:drive 2.4s linear infinite}
+@keyframes drive{to{transform:translateX(-80px)}}
+@media (prefers-reduced-motion:reduce){.lane::after{animation:none}}
+
+section{padding-block:56px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+.sec-head h2{font-size:clamp(34px,4.6vw,54px)}
+.sec-head p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+
+/* controls */
+.controls{display:grid;grid-template-columns:1fr auto;gap:18px 28px;align-items:center;background:var(--ink);color:var(--bg);padding:18px 22px}
+.controls label{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
+.budget-row{display:flex;align-items:center;gap:16px}
+.budget-val{font-family:var(--display);font-size:40px;font-weight:700;color:var(--accent);min-width:5.2ch}
+input[type=range]{flex:1;accent-color:var(--accent);height:28px}
+.src{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:13px}
+.src .pill{font-family:var(--mono);font-size:12px;padding:3px 9px;border:1px solid currentColor}
+.btn{font:600 14px var(--body);background:var(--accent);color:#15181b;border:0;padding:9px 14px;cursor:pointer}
+.btn.ghost{background:transparent;color:inherit;border:1px solid currentColor}
+.btn:hover{filter:brightness(1.05)}
+.file-note{font-size:12px;opacity:.75;max-width:36ch}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);border-top:0;background:var(--surface)}
+.kpi{padding:16px 18px;border-right:1px solid var(--line)}
+.kpi:last-child{border-right:0}
+.kpi .k{font-size:13px;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-size:38px;font-weight:700;line-height:1.05;margin-top:4px}
+.delta{display:inline-block;font-family:var(--mono);font-size:12px;margin-top:6px;padding:2px 7px;background:var(--good-bg);color:var(--good)}
+.delta.neutral{background:var(--low-bg);color:var(--muted)}
+
+/* map + plan */
+.board{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;margin-top:22px}
+.panel{background:var(--surface);border:1px solid var(--line)}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-h h3{font-size:24px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.map-box{padding:10px}
+#map{width:100%;height:auto;display:block}
+#map .seg{cursor:pointer}
+#map .seg:hover .mark,#map .seg.sel .mark{stroke:var(--ink);stroke-width:3}
+.detail{border-top:1px solid var(--line);padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px;min-height:150px}
+.detail .dh{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.detail .dh b{font-family:var(--display);font-size:26px}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0}
+.chip{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;white-space:nowrap}
+.chip.repair{background:var(--good-bg);color:var(--good)}
+.chip.High{background:var(--high-bg);color:var(--high)}
+.chip.Medium{background:var(--med-bg);color:var(--med)}
+.chip.Low{background:var(--low-bg);color:var(--muted)}
+.tbl-box{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+tr.sel{background:var(--surface-2)}
+.rank{font-family:var(--display);font-size:20px;font-weight:700;color:var(--accent-ink)}
+.plan-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);flex-wrap:wrap}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.chart-box{padding:14px 16px}
+#curve{width:100%;height:auto;display:block}
+.axis text{fill:var(--muted);font-size:11px;font-family:var(--mono)}
+.caption{font-size:13px;color:var(--muted);padding:0 16px 14px}
+
+/* how */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--line);background:var(--surface)}
+.step{padding:18px;border-right:1px solid var(--line)}
+.step:last-child{border-right:0}
+.step .n{font-family:var(--display);font-size:44px;font-weight:800;color:var(--accent-ink);line-height:1}
+.step h3{font-size:22px;margin:8px 0 6px}
+.step p{margin:0;font-size:14px;color:var(--muted)}
+.formula{margin-top:22px;display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
+.code{font-family:var(--mono);font-size:13.5px;background:var(--ink);color:var(--bg);padding:18px 20px;line-height:1.8;overflow-x:auto;white-space:pre}
+.code .c{opacity:.55}
+.code .a{color:var(--accent)}
+.rate td:first-child{font-weight:600}
+
+/* model */
+.bars{padding:16px}
+.bar-row{display:grid;grid-template-columns:190px 1fr 56px;gap:12px;align-items:center;padding:8px 0;font-size:14px}
+.bar-track{height:22px;background:var(--surface-2);position:relative}
+.bar-fill{position:absolute;inset:0 auto 0 0;background:var(--low)}
+.bar-fill.best{background:var(--accent)}
+.bar-val{font-family:var(--mono);text-align:right}
+.note{border-left:4px solid var(--accent);background:var(--surface);padding:14px 18px;margin-top:22px;font-size:14.5px;max-width:80ch}
+
+/* team */
+.team{background:var(--ink);color:var(--bg);padding-block:64px}
+.team h2{font-size:clamp(56px,11vw,150px);letter-spacing:.04em}
+.team h2 span{color:var(--accent)}
+.team p{max-width:60ch;opacity:.8;font-size:16px}
+.team .meta{display:flex;gap:28px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:13px}
+.team .meta div span{display:block;opacity:.6;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+footer{padding-block:22px;font-size:12px;color:var(--muted)}
+
+@media (max-width:980px){
+  .hero-grid,.board,.two,.formula{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpi{border-bottom:1px solid var(--line)}
+  .kpi:nth-child(2n){border-right:0}
+  .kpi:last-child{grid-column:1/-1}
+  .steps{grid-template-columns:1fr 1fr}
+  .step{border-bottom:1px solid var(--line)}
+  .controls{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .steps{grid-template-columns:1fr}
+  .step{border-right:0}
+  .bar-row{grid-template-columns:1fr 50px}
+  .bar-row .bar-track{grid-column:1/-1;grid-row:2}
+  nav.top ul{gap:12px;font-size:13px}
+  .budget-val{font-size:32px}
+}
+
+/* backend */
+.api-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--low);display:inline-block;flex:none}
+.dot.on{background:var(--good)}
+.dot.off{background:var(--high)}
+.inspect{display:grid;grid-template-columns:1fr 1.2fr;gap:22px;margin-top:22px}
+.inspect form{display:grid;gap:10px;padding:16px}
+.inspect label{font-weight:600;font-size:14px}
+.inspect select,.inspect input[type=file]{font:inherit;padding:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.inspect .out{padding:16px;display:grid;gap:12px;align-content:start}
+.inspect img{width:100%;border:1px solid var(--line)}
+.inspect .msg{font-size:14px;margin:0}
+.btn:disabled{opacity:.6;cursor:wait}
+@media (max-width:980px){.inspect{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#f2c230"/><path d="M15 8 V24" stroke="#15181b" stroke-width="3" stroke-dasharray="4 3"/></svg>
+      GLADIATORS
+    </a>
+    <ul>
+      <li><a href="#demo">Live demo</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#model">Model</a></li>
+      <li><a href="#team">Team</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="tag">HTH-CV-07 <b>·</b> Municipal Infrastructure</div>
+        <h1>Too many potholes.<br>Not enough money.<br><em>Fix the right roads first.</em></h1>
+        <p class="lede">Gladiators detects road damage from camera images, scores how severe it is, weights it by traffic, and picks the set of repairs that removes the most risk for a fixed maintenance budget.</p>
+      </div>
+      <div class="ledger" aria-label="Current scenario">
+        <div><span>Damaged road segments</span><strong class="num" id="h-segs">–</strong></div>
+        <div><span>Cost to repair everything</span><strong class="num" id="h-all">–</strong></div>
+        <div><span>Maintenance budget</span><strong class="num" id="h-budget">–</strong></div>
+        <div class="gap"><span>Funding gap</span><strong class="num" id="h-gap">–</strong></div>
+      </div>
+    </div>
+    <div class="lane" aria-hidden="true"></div>
+  </div>
+</header>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow">Live demo</div>
+        <h2>Repair priority planner</h2>
+        <p>Move the budget. The optimizer re-plans every repair in the network and shows what it chose to leave unfunded, and why.</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div>
+        <label for="budget">Maintenance budget (₹ lakh)</label>
+        <div class="budget-row">
+          <input type="range" id="budget" min="1" max="20" step="0.5" value="5">
+          <span class="budget-val num" id="budget-val">₹5.0 L</span>
+        </div>
+      </div>
+      <div class="src">
+        <span>Data source: <span class="pill" id="src-pill">Sample network</span></span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="btn" for="csv" style="margin:0">Load detections.csv</label>
+          <input type="file" id="csv" accept=".csv,text/csv" hidden>
+          <button class="btn ghost" id="reset" type="button">Use sample</button>
+        </div>
+        <span class="file-note" id="file-note">Load the detections.csv exported from our YOLO notebook to plan on real detections.</span>
+      </div>
+    </div>
+
+    <div class="api-bar"><span class="dot" id="api-dot"></span><span id="api-status">Checking backend…</span><span id="server-check"></span></div>
+
+    <div class="inspect">
+      <div class="panel">
+        <div class="panel-h"><h3>Inspect a road photo</h3><span class="eyebrow">YOLO on the backend</span></div>
+        <form id="detect-form">
+          <label for="photo">Road photo (JPG or PNG)</label>
+          <input type="file" id="photo" accept="image/*" required>
+          <label for="road-type">Road class</label>
+          <select id="road-type"><option>Highway</option><option selected>Arterial</option><option>Collector</option><option>Local</option></select>
+          <button class="btn" id="detect-btn" type="submit">Detect damage</button>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Detection result</h3></div>
+        <div class="out"><p class="msg" id="detect-msg">Upload a photo to see the damage the model finds. Each photo with damage becomes a new road segment in the plan.</p><img id="detect-img" alt="Road photo with detected damage boxes" hidden></div>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k">Damaged segments</div><div class="v num" id="k-segs">–</div></div>
+      <div class="kpi"><div class="k">Cost to fix all</div><div class="v num" id="k-all">–</div></div>
+      <div class="kpi"><div class="k">Budget used</div><div class="v num" id="k-used">–</div><span class="delta neutral num" id="k-used-d">–</span></div>
+      <div class="kpi"><div class="k">Segments repaired</div><div class="v num" id="k-rep">–</div><span class="delta num" id="k-rep-d">–</span></div>
+      <div class="kpi"><div class="k">Network risk removed</div><div class="v num" id="k-risk">–</div><span class="delta num" id="k-risk-d">–</span></div>
+    </div>
+
+    <div class="board">
+      <div class="panel">
+        <div class="panel-h">
+          <h3>Network map</h3>
+          <div class="legend">
+            <span><i style="background:var(--good)"></i>Repair</span>
+            <span><i style="background:var(--high)"></i>High, unfunded</span>
+            <span><i style="background:var(--med)"></i>Medium</span>
+            <span><i style="background:var(--low)"></i>Low</span>
+          </div>
+        </div>
+        <div class="map-box"><svg id="map" viewBox="0 0 800 480" role="img" aria-label="Schematic road network with damaged segments"></svg></div>
+        <dl class="detail" id="detail"></dl>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3 id="plan-title">Repair plan</h3><span class="eyebrow">Ranked by risk</span></div>
+        <div class="tbl-box">
+          <table>
+            <thead><tr><th>#</th><th>Segment</th><th>Road</th><th>Severity</th><th class="r">Cost</th><th class="r">Risk</th></tr></thead>
+            <tbody id="plan"></tbody>
+          </table>
+        </div>
+        <div class="plan-foot"><span id="plan-sum">–</span><button class="btn ghost" id="copy" type="button">Copy plan as CSV</button></div>
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="panel">
+        <div class="panel-h"><h3>Left unfunded, and why</h3></div>
+        <div class="tbl-box" style="max-height:420px;overflow-y:auto">
+          <table>
+            <thead><tr><th>Segment</th><th>Road</th><th>Severity</th><th class="r">Cost</th><th>Reason</th></tr></thead>
+            <tbody id="unfunded"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Risk removed vs budget</h3></div>
+        <div class="chart-box"><svg id="curve" viewBox="0 0 560 300" role="img" aria-label="Percent of network risk removed at each budget, optimizer versus fix-worst-first"></svg></div>
+        <p class="caption" id="curve-cap">–</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="background:var(--surface-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow">Pipeline</div>
+        <h2>How it works</h2>
+        <p>Five stages, from a dashcam frame to a ranked work order.</p>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Detect</h3><p>YOLOv8s finds longitudinal, transverse and alligator cracks and potholes (RDD2022 classes D00, D10, D20, D40).</p></div>
+      <div class="step"><div class="n">2</div><h3>Score</h3><p>Severity 0–10 from damage type and how much of the frame each box covers. Low, Medium, High bands.</p></div>
+      <div class="step"><div class="n">3</div><h3>Weight</h3><p>Each segment's road class sets its traffic volume. A highway defect outranks the same defect on a lane.</p></div>
+      <div class="step"><div class="n">4</div><h3>Optimize</h3><p>0/1 knapsack: choose the repairs that remove the most risk without exceeding the budget.</p></div>
+      <div class="step"><div class="n">5</div><h3>Plan</h3><p>Ranked repair list, map, unfunded trade-offs with reasons, and the risk curve across budgets.</p></div>
+    </div>
+    <div class="formula">
+<div class="code"><span class="c"># per segment</span>
+severity = min(10, 20 × Σ w<sub>class</sub> × box_area)
+cost     = ₹15,000 + Σ unit_cost<sub>class</sub> × area_m²
+traffic  = log(AADT) / log(30,000)
+<span class="a">risk     = severity × traffic</span>
+
+<span class="c"># network</span>
+maximise  Σ risk<sub>i</sub> · x<sub>i</sub>
+subject to Σ cost<sub>i</sub> · x<sub>i</sub> ≤ budget,  x<sub>i</sub> ∈ {0,1}</div>
+      <div class="panel">
+        <div class="panel-h"><h3>Rate card</h3><span class="eyebrow">Synthetic, for demo</span></div>
+        <div class="tbl-box">
+          <table class="rate">
+            <thead><tr><th>Damage</th><th>Code</th><th class="r">Weight</th><th class="r">₹ / m²</th></tr></thead>
+            <tbody>
+              <tr><td>Longitudinal crack</td><td>D00</td><td class="r num">0.4</td><td class="r num">600</td></tr>
+              <tr><td>Transverse crack</td><td>D10</td><td class="r num">0.5</td><td class="r num">600</td></tr>
+              <tr><td>Alligator crack</td><td>D20</td><td class="r num">0.8</td><td class="r num">1,200</td></tr>
+              <tr><td>Pothole</td><td>D40</td><td class="r num">1.0</td><td class="r num">2,500</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="tbl-box" style="border-top:1px solid var(--line)">
+          <table class="rate">
+            <thead><tr><th>Road class</th><th class="r">Vehicles / day</th><th class="r">Traffic weight</th></tr></thead>
+            <tbody>
+              <tr><td>Highway</td><td class="r num">30,000</td><td class="r num">1.00</td></tr>
+              <tr><td>Arterial</td><td class="r num">15,000</td><td class="r num">0.93</td></tr>
+              <tr><td>Collector</td><td class="r num">5,000</td><td class="r num">0.83</td></tr>
+              <tr><td>Local</td><td class="r num">1,000</td><td class="r num">0.67</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow">Detection accuracy</div>
+        <h2>Model results</h2>
+        <p>mAP@50 on the 1,632-image validation split of our RDD2022 dataset (Roboflow, Norway roads).</p>
+      </div>
+    </div>
+    <div class="two" style="margin-top:0">
+      <div class="panel">
+        <div class="panel-h"><h3>Model comparison</h3><span class="eyebrow">mAP@50</span></div>
+        <div class="bars" id="bars-a"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Per class, best model</h3><span class="eyebrow">1024 px</span></div>
+        <div class="bars" id="bars-b"></div>
+      </div>
+    </div>
+    <div class="note">
+      <strong>What these numbers mean.</strong> Our own YOLOv8s, fine-tuned for 18 epochs on free Colab, reached 0.138. A public RDD2022 YOLOv8s checkpoint scored 0.24 on the same split, and 0.265 when run at 1024 px, because thin cracks survive the higher resolution. The split is the Norway subset: wide frames, small cracks, and only 93 potholes, which the model rarely finds. More pothole data and longer training are the next steps.
+    </div>
+  </div>
+</section>
+
+<section class="team" id="team">
+  <div class="wrap">
+    <div class="eyebrow" style="color:inherit;opacity:.6">The team</div>
+    <h2>Glad<span>i</span>ators</h2>
+    <p>We built a budget-aware repair planner for city road departments: computer vision to find the damage, an optimizer to decide what to fix first, and a map that shows the trade-offs in plain sight.</p>
+    <div class="meta">
+      <div><span>Problem</span>HTH-CV-07</div>
+      <div><span>Detection</span>YOLOv8s · RDD2022</div>
+      <div><span>Optimizer</span>0/1 knapsack (DP)</div>
+      <div><span>Stack</span>Python · Colab · Streamlit</div>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">Segment locations and traffic volumes in the sample are simulated for demonstration. Repair costs use a synthetic rate card.</div></footer>
+
+<script>
+(function(){
+  const CLASS_NAME=['Longitudinal crack','Transverse crack','Alligator crack','Pothole'];
+  const W=[0.4,0.5,0.8,1.0], UNIT=[600,600,1200,2500], FIXED=15000, IMG_M2=20;
+  const TRAFFIC={Highway:30000,Arterial:15000,Collector:5000,Local:1000};
+  const TYPES=['Highway','Arterial','Collector','Local'];
+  const $=id=>document.getElementById(id);
+  const lakh=v=>'₹'+(v/1e5).toFixed(1)+' L';
+  const rupee=v=>'₹'+Math.round(v).toLocaleString('en-IN');
+
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function pick(r,items,p){let x=r(),c=0;for(let i=0;i<items.length;i++){c+=p[i];if(x<c)return items[i];}return items[items.length-1];}
+
+  function sample(){
+    const r=rng(42),segs=[];
+    for(let i=0;i<30;i++){
+      const road=pick(r,TYPES,[.15,.3,.3,.25]);
+      const n=1+Math.floor(r()*5),dets=[];
+      for(let k=0;k<n;k++)dets.push([pick(r,[0,1,2,3],[.35,.25,.2,.2]),0.01+r()*0.14]);
+      segs.push({id:'SEG-'+String(i+1).padStart(2,'0'),road,dets});
+    }
+    return segs;
+  }
+
+  function parseCSV(text){
+    const lines=text.trim().split(/\r?\n/);
+    const head=lines.shift().split(',').map(h=>h.trim().toLowerCase());
+    const ix=n=>head.indexOf(n);
+    const iS=ix('segment'),iR=ix('road_type'),iC=ix('cls'),iA=ix('area');
+    if(iS<0||iR<0||iC<0||iA<0)throw new Error('The file needs the columns segment, road_type, cls and area.');
+    const map=new Map();
+    for(const ln of lines){
+      if(!ln.trim())continue;
+      const c=ln.split(',');
+      const id=c[iS].trim(),road=c[iR].trim(),cls=parseInt(c[iC],10),area=parseFloat(c[iA]);
+      if(!(road in TRAFFIC)||isNaN(cls)||isNaN(area))continue;
+      if(!map.has(id))map.set(id,{id,road,dets:[]});
+      map.get(id).dets.push([Math.max(0,Math.min(3,cls)),area]);
+    }
+    const segs=[...map.values()];
+    if(!segs.length)throw new Error('No usable rows were found in the file.');
+    return segs;
+  }
+
+  function derive(segs){
+    const lt=Math.log10(30000);
+    return segs.map(s=>{
+      const sev=Math.round(Math.min(10,s.dets.reduce((a,[c,ar])=>a+W[c]*ar,0)*20)*100)/100;
+      const cost=Math.round(FIXED+s.dets.reduce((a,[c,ar])=>a+UNIT[c]*ar*IMG_M2*10,0));
+      const tw=Math.round(Math.log10(TRAFFIC[s.road])/lt*100)/100;
+      const level=sev<=3?'Low':sev<=6?'Medium':'High';
+      const kinds=[...new Set(s.dets.map(d=>d[0]))].sort().map(c=>CLASS_NAME[c]);
+      return {...s,sev,cost,tw,risk:Math.round(sev*tw*100)/100,level,traffic:TRAFFIC[s.road],kinds};
+    });
+  }
+
+  function knapsack(d,budget,unit=1000){
+    const c=d.map(s=>Math.ceil(s.cost/unit)),B=Math.floor(budget/unit),n=d.length;
+    let dp=new Float64Array(B+1);const keep=new Uint8Array(n*(B+1));
+    for(let i=0;i<n;i++){
+      const nd=dp.slice();
+      for(let b=c[i];b<=B;b++){const v=dp[b-c[i]]+d[i].risk;if(v>nd[b]){nd[b]=v;keep[i*(B+1)+b]=1;}}
+      dp=nd;
+    }
+    const chosen=new Set();let b=B;
+    for(let i=n-1;i>=0;i--){if(keep[i*(B+1)+b]){chosen.add(i);b-=c[i];}}
+    return chosen;
+  }
+  function worstFirst(d,budget){
+    const order=d.map((s,i)=>i).sort((a,b)=>d[b].sev-d[a].sev);let spent=0;const ch=new Set();
+    for(const i of order){if(spent+d[i].cost<=budget){ch.add(i);spent+=d[i].cost;}}
+    return ch;
+  }
+  const sumRisk=(d,set)=>[...set].reduce((a,i)=>a+d[i].risk,0);
+
+  /* schematic network */
+  const XS=[60,170,280,400,520,630,740],YS=[50,140,240,340,430];
+  const hClass=r=>r===2?'Highway':(r===0||r===4)?'Arterial':r===1?'Collector':'Local';
+  const vClass=c=>c===3?'Highway':(c===1||c===5)?'Arterial':(c===0||c===6)?'Collector':'Local';
+  const EDGES=[];
+  YS.forEach((y,r)=>{for(let c=0;c<XS.length-1;c++)EDGES.push({x1:XS[c],y1:y,x2:XS[c+1],y2:y,cls:hClass(r)});});
+  XS.forEach((x,c)=>{for(let r=0;r<YS.length-1;r++)EDGES.push({x1:x,y1:YS[r],x2:x,y2:YS[r+1],cls:vClass(c)});});
+  const WIDTH={Highway:10,Arterial:7,Collector:5,Local:3};
+
+  function assignEdges(d){
+    const r=rng(7),pools={};
+    TYPES.forEach(t=>{pools[t]=EDGES.map((e,i)=>i).filter(i=>EDGES[i].cls===t).sort(()=>r()-.5);});
+    const used=new Set();
+    d.forEach(s=>{
+      let e=pools[s.road].find(i=>!used.has(i));
+      if(e===undefined)e=EDGES.map((x,i)=>i).find(i=>!used.has(i));
+      if(e===undefined)e=Math.floor(r()*EDGES.length);
+      used.add(e);s.edge=e;
+    });
+  }
+
+  let data=[],budget=5e5,selected=null,curve=null,sourceLabel='Sample network';
+
+  function load(segs,label){
+    data=derive(segs);assignEdges(data);sourceLabel=label;selected=null;
+    const budgets=[];for(let b=1;b<=20;b++)budgets.push(b*1e5);
+    const total=data.reduce((a,s)=>a+s.risk,0)||1;
+    curve=budgets.map(b=>({b,opt:sumRisk(data,knapsack(data,b))/total*100,grd:sumRisk(data,worstFirst(data,b))/total*100}));
+    render();
+  }
+
+  const statusColor=(s,rep)=>rep?'var(--good)':s.level==='High'?'var(--high)':s.level==='Medium'?'var(--med)':'var(--low)';
+
+  function render(){
+    const opt=knapsack(data,budget),grd=worstFirst(data,budget);
+    const total=data.reduce((a,s)=>a+s.risk,0)||1;
+    const all=data.reduce((a,s)=>a+s.cost,0);
+    const used=[...opt].reduce((a,i)=>a+data[i].cost,0);
+    const optPct=sumRisk(data,opt)/total*100,grdPct=sumRisk(data,grd)/total*100;
+    const plan=[...opt].sort((a,b)=>data[b].risk-data[a].risk);
+    const rank=new Map(plan.map((i,k)=>[i,k+1]));
+    if(selected===null||selected>=data.length)selected=plan.length?plan[0]:0;
+
+    $('budget-val').textContent=lakh(budget);
+    $('src-pill').textContent=sourceLabel;
+    $('h-segs').textContent=data.length;$('h-all').textContent=lakh(all);$('h-budget').textContent=lakh(budget);
+    $('h-gap').textContent=all>budget?lakh(all-budget):'None';
+    $('k-segs').textContent=data.length;$('k-all').textContent=lakh(all);
+    $('k-used').textContent=lakh(used);$('k-used-d').textContent=Math.round(used/budget*100)+'% of budget';
+    $('k-rep').textContent=opt.size+' / '+data.length;
+    const dr=opt.size-grd.size;$('k-rep-d').textContent=(dr>=0?'+':'')+dr+' vs worst-first';
+    $('k-rep-d').className='delta num'+(dr>0?'':' neutral');
+    $('k-risk').textContent=optPct.toFixed(1)+'%';
+    const dp=optPct-grdPct;$('k-risk-d').textContent=(dp>=0?'+':'')+dp.toFixed(1)+' pts vs worst-first';
+    $('k-risk-d').className='delta num'+(dp>0.05?'':' neutral');
+
+    /* map */
+    let svg='';
+    svg+='<rect x="0" y="0" width="800" height="480" fill="var(--surface)"/>';
+    EDGES.forEach(e=>{svg+=`<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="var(--road)" stroke-width="${WIDTH[e.cls]}" stroke-linecap="round"/>`;});
+    XS.forEach(x=>YS.forEach(y=>{svg+=`<circle cx="${x}" cy="${y}" r="4" fill="var(--road-edge)"/>`;}));
+    svg+=`<text x="${XS[0]}" y="${YS[2]-12}" font-size="11" font-family="IBM Plex Mono,monospace" fill="var(--muted)">HWY 1</text>`;
+    svg+=`<text x="${XS[3]+10}" y="${YS[0]+22}" font-size="11" font-family="IBM Plex Mono,monospace" fill="var(--muted)">HWY 2</text>`;
+    data.forEach((s,i)=>{
+      const e=EDGES[s.edge],rep=opt.has(i),col=statusColor(s,rep);
+      const mx=(e.x1+e.x2)/2,my=(e.y1+e.y2)/2,r=7+s.risk*1.6;
+      svg+=`<g class="seg${i===selected?' sel':''}" data-i="${i}" tabindex="0" role="button" aria-label="${s.id}">`;
+      svg+=`<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="${col}" stroke-width="${WIDTH[s.road]}" stroke-linecap="round" opacity=".55"/>`;
+      svg+=`<circle class="mark" cx="${mx}" cy="${my}" r="${r.toFixed(1)}" fill="${col}" stroke="var(--surface)" stroke-width="2"/>`;
+      if(rep)svg+=`<text x="${mx}" y="${my+4}" text-anchor="middle" font-size="12" font-weight="700" font-family="Barlow Condensed,Arial Narrow,sans-serif" fill="#fff">${rank.get(i)}</text>`;
+      svg+='</g>';
+    });
+    $('map').innerHTML=svg;
+
+    /* detail */
+    const s=data[selected];
+    if(s){
+      const rep=opt.has(selected);
+      $('detail').innerHTML=`<div class="dh"><b>${s.id}</b>${rep?`<span class="chip repair">Repair · priority ${rank.get(selected)}</span>`:'<span class="chip Low">Not funded</span>'}<span class="chip ${s.level}">${s.level} severity</span></div>
+        <dt>Damage</dt><dd>${s.kinds.join(', ')} (${s.dets.length} detection${s.dets.length>1?'s':''})</dd>
+        <dt>Road</dt><dd>${s.road} · ${s.traffic.toLocaleString('en-IN')} vehicles/day</dd>
+        <dt>Severity</dt><dd class="num">${s.sev.toFixed(2)} / 10</dd>
+        <dt>Repair cost</dt><dd class="num">${rupee(s.cost)}</dd>
+        <dt>Risk</dt><dd class="num">${s.risk.toFixed(2)}</dd>`;
+    }
+
+    /* plan */
+    $('plan-title').textContent=`Repair plan (${plan.length})`;
+    $('plan').innerHTML=plan.map(i=>{const s=data[i];return `<tr data-i="${i}" class="${i===selected?'sel':''}"><td class="rank">${rank.get(i)}</td><td><b>${s.id}</b></td><td>${s.road}</td><td><span class="chip ${s.level}">${s.level}</span></td><td class="r num">${rupee(s.cost)}</td><td class="r num">${s.risk.toFixed(2)}</td></tr>`;}).join('')||'<tr><td colspan="6">The budget is too small for any single repair.</td></tr>';
+    $('plan-sum').textContent=`${rupee(used)} of ${rupee(budget)} committed · ${rupee(budget-used)} unspent`;
+
+    /* unfunded */
+    const cut=plan.length?Math.min(...plan.map(i=>data[i].risk)):0;
+    const reason=s=>{
+      if(s.cost>budget)return 'Costs more than the whole budget';
+      if(s.level==='High'&&s.tw<0.9)return `High severity, but a ${s.road.toLowerCase()} road with less traffic`;
+      if(s.risk>=cut)return `${lakh(s.cost)} would push out higher-value repairs`;
+      return 'Less risk removed per rupee than funded repairs';
+    };
+    const nf=data.map((s,i)=>i).filter(i=>!opt.has(i)).sort((a,b)=>data[b].risk-data[a].risk);
+    $('unfunded').innerHTML=nf.map(i=>{const s=data[i];return `<tr data-i="${i}" class="${i===selected?'sel':''}"><td><b>${s.id}</b></td><td>${s.road}</td><td><span class="chip ${s.level}">${s.level}</span></td><td class="r num">${rupee(s.cost)}</td><td>${reason(s)}</td></tr>`;}).join('')||'<tr><td colspan="5">Every damaged segment is funded at this budget.</td></tr>';
+
+    drawCurve();
+  }
+
+  function drawCurve(){
+    const L=48,R=16,T=16,Bm=40,Wd=560,H=300,pw=Wd-L-R,ph=H-T-Bm;
+    const x=b=>L+(b/1e5-1)/19*pw,y=v=>T+(1-v/100)*ph;
+    let g='<g class="axis">';
+    [0,25,50,75,100].forEach(v=>{g+=`<line x1="${L}" x2="${Wd-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}%</text>`;});
+    [1,5,10,15,20].forEach(b=>{g+=`<text x="${x(b*1e5)}" y="${H-Bm+18}" text-anchor="middle">₹${b}L</text>`;});
+    g+=`<text x="${L+pw/2}" y="${H-4}" text-anchor="middle">Budget</text></g>`;
+    const path=k=>curve.map((p,i)=>(i?'L':'M')+x(p.b).toFixed(1)+','+y(p[k]).toFixed(1)).join('');
+    const area='M'+x(curve[0].b)+','+y(0)+curve.map(p=>'L'+x(p.b).toFixed(1)+','+y(p.opt).toFixed(1)).join('')+'L'+x(curve[curve.length-1].b)+','+y(0)+'Z';
+    g+=`<path d="${area}" fill="var(--accent)" opacity=".14"/>`;
+    g+=`<path d="${path('grd')}" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4"/>`;
+    g+=`<path d="${path('opt')}" fill="none" stroke="var(--accent-ink)" stroke-width="3"/>`;
+    const bx=x(budget);
+    g+=`<line x1="${bx}" x2="${bx}" y1="${T}" y2="${T+ph}" stroke="var(--ink)" stroke-dasharray="2 3"/>`;
+    const near=curve.reduce((a,p)=>Math.abs(p.b-budget)<Math.abs(a.b-budget)?p:a);
+    g+=`<circle cx="${x(near.b)}" cy="${y(near.opt)}" r="5" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.5"/>`;
+    g+=`<g font-family="Public Sans,sans-serif" font-size="12"><rect x="${L+10}" y="${T+6}" width="12" height="3" fill="var(--accent-ink)"/><text x="${L+28}" y="${T+11}" fill="var(--ink)">Our optimizer</text><line x1="${L+10}" x2="${L+22}" y1="${T+26}" y2="${T+26}" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/><text x="${L+28}" y="${T+30}" fill="var(--ink)">Fix worst first</text></g>`;
+    $('curve').innerHTML=g;
+    const best=curve.reduce((a,p)=>(p.opt-p.grd)>(a.opt-a.grd)?p:a);
+    const ahead=curve.every(p=>p.opt>=p.grd-0.5);
+    $('curve-cap').textContent=(ahead?`The optimizer matches or beats fix-worst-first at every budget. `:``)+`The widest gap is at ₹${best.b/1e5} lakh: ${best.opt.toFixed(0)}% of risk removed against ${best.grd.toFixed(0)}%.`;
+  }
+
+  function bars(el,rows,max){
+    $(el).innerHTML=rows.map(r=>`<div class="bar-row"><span>${r[0]}</span><div class="bar-track"><div class="bar-fill${r[2]?' best':''}" style="width:${(r[1]/max*100).toFixed(1)}%"></div></div><span class="bar-val">${r[1].toFixed(3)}</span></div>`).join('');
+  }
+  bars('bars-a',[['Our YOLOv8s, 18 epochs',0.138],['Pretrained YOLOv8s, 640 px',0.24],['Pretrained YOLOv8s, 1024 px',0.265,1]],0.5);
+  bars('bars-b',[['Longitudinal crack',0.445,1],['Alligator crack',0.321],['Transverse crack',0.293],['Pothole',0.001]],0.5);
+
+  /* events */
+  $('budget').addEventListener('input',e=>{budget=parseFloat(e.target.value)*1e5;render();});
+  function choose(i){selected=i;render();}
+  $('map').addEventListener('click',e=>{const g=e.target.closest('.seg');if(g)choose(+g.dataset.i);});
+  $('map').addEventListener('keydown',e=>{const g=e.target.closest('.seg');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();choose(+g.dataset.i);}});
+  ['plan','unfunded'].forEach(id=>$(id).addEventListener('click',e=>{const tr=e.target.closest('tr[data-i]');if(tr)choose(+tr.dataset.i);}));
+  $('csv').addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{try{const segs=parseCSV(rd.result);load(segs,'Real YOLO detections');$('file-note').textContent=`Loaded ${f.name}: ${segs.length} segments.`;}catch(err){$('file-note').textContent=err.message;}};
+    rd.readAsText(f);e.target.value='';
+  });
+  $('reset').addEventListener('click',()=>{load(sample(),'Sample network');$('file-note').textContent='Showing the sample network.';});
+  $('copy').addEventListener('click',()=>{
+    const opt=knapsack(data,budget);
+    const rows=[...opt].sort((a,b)=>data[b].risk-data[a].risk).map((i,k)=>[k+1,data[i].id,data[i].road,data[i].level,data[i].sev,data[i].cost,data[i].risk].join(','));
+    const txt=['priority,segment,road_type,level,severity,cost_inr,risk',...rows].join('\n');
+    const btn=$('copy');
+    const done=m=>{btn.textContent=m;setTimeout(()=>btn.textContent='Copy plan as CSV',1800);};
+    try{navigator.clipboard.writeText(txt).then(()=>done('Copied'),()=>done('Copy blocked'));}catch(_){done('Copy blocked');}
+  });
+
+  /* ---------- backend connection ---------- */
+  const API=location.protocol.startsWith('http')?'':'http://127.0.0.1:8000';
+  let online=false,planTimer=null;
+  function setStatus(ok,text){online=ok;$('api-dot').className='dot '+(ok?'on':'off');$('api-status').textContent=text;}
+  async function serverCheck(){
+    if(!online||sourceLabel!=='Backend'){$('server-check').textContent='';return;}
+    try{
+      const r=await fetch(API+'/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({budget})});
+      const j=await r.json();
+      $('server-check').textContent=`· Server optimizer: ${j.segments_repaired} segments, ${j.risk_removed_pct}% risk removed`;
+    }catch(_){$('server-check').textContent='';}
+  }
+  async function fromBackend(){
+    try{
+      const r=await fetch(API+'/api/segments');if(!r.ok)throw new Error();
+      const j=await r.json();
+      setStatus(true,`Backend connected · ${j.count} segments from ${j.source}`);
+      if(j.count)load(j.segments,'Backend');else load(sample(),'Sample network');
+    }catch(_){
+      setStatus(false,'Backend offline · showing sample data. Start it with: python -m uvicorn main:app');
+      load(sample(),'Sample network');
+    }
+    serverCheck();
+  }
+  $('budget').addEventListener('input',()=>{clearTimeout(planTimer);planTimer=setTimeout(serverCheck,300);});
+  $('detect-form').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const f=$('photo').files[0];if(!f)return;
+    if(!online){$('detect-msg').textContent='The backend is offline. Start it, then refresh this page.';return;}
+    const fd=new FormData();fd.append('file',f);fd.append('road_type',$('road-type').value);
+    $('detect-btn').disabled=true;$('detect-msg').textContent='Running YOLO. The first photo takes longer while the model loads.';
+    try{
+      const r=await fetch(API+'/api/detect',{method:'POST',body:fd});const j=await r.json();
+      if(!r.ok)throw new Error(j.detail||'Detection failed.');
+      $('detect-img').src=j.image;$('detect-img').hidden=false;
+      if(j.found){
+        const list=j.detections.map(d=>`${d.code} ${d.class} (${Math.round(d.conf*100)}%)`).join(', ');
+        $('detect-msg').textContent=`Found ${j.found}: ${list}. Added as ${j.segment.id}, severity ${j.score.severity}, cost ₹${j.score.cost.toLocaleString('en-IN')}.`;
+        await fromBackend();
+      }else $('detect-msg').textContent='No damage found in this photo, so no segment was added.';
+    }catch(err){$('detect-msg').textContent=err.message;}
+    finally{$('detect-btn').disabled=false;}
+  });
+
+  fromBackend();
+})();
+</script>
+</body>
+</html>
