@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ward Equity &amp; Rolling Horizon · WinterRoad Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="banner">
+  <strong>Municipal Admin Portal:</strong> Ward-Level Spatial Equity Allocation &amp; Multi-Month Rolling Repair Horizon.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin">Overview</a>
+      <a href="/admin/reports">Verification Queue</a>
+      <a href="/admin/planner">Planner</a>
+      <a href="/admin/research">Research</a>
+      <a href="/admin/equity" class="active">Equity</a>
+      <a href="/admin/about">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:18px">
+    <div class="wrap">
+      <div class="eyebrow">Spatial Justice &amp; Planning Horizons</div>
+      <h2>Ward Allocation &amp; The Price of Fairness</h2>
+      <p class="lead">
+        Pure mathematical knapsack optimization maximizes global city-wide safety, but can concentrate funding in affluent or high-traffic corridors. This module audits ward distribution and multi-month rolling repair schedules.
+      </p>
+
+      <!-- Section 1: Ward Distribution & Gini Index -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <div class="row" style="gap:8px;align-items:center">
+            <h3>1 · Ward-Level Funding Distribution</h3>
+            <span class="badge-sim">⚠️ SIMULATED DATA</span>
+          </div>
+          <span class="note">Kochi Municipal Corporation (Zones 1–5)</span>
+        </div>
+        <div class="panel-b">
+          <div class="kpis" style="margin-bottom:16px">
+            <div class="kpi">
+              <div class="k">Spatial Gini Coefficient (Unconstrained)</div>
+              <div class="v num" style="color:var(--good)">0.101</div>
+              <div class="d">Standard Knapsack zone disparity</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Spatial Gini Coefficient (Fair 25% Floor)</div>
+              <div class="v num" style="color:var(--good)">0.101</div>
+              <div class="d" style="color:var(--good)">All zones naturally exceed 25% floor (>= 45.9%)</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Price of Fairness (Efficiency Trade-off)</div>
+              <div class="v num" style="color:var(--good)">0.0%</div>
+              <div class="d">Risk sacrificed at ₹5.0L budget (0.0% pts trade-off)</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Ward / Zone (OSM Civic Nodes)</th>
+                <th>Defects Cataloged</th>
+                <th class="r">Total Repair Need</th>
+                <th class="r">Standard Knapsack Allocation</th>
+                <th class="r">Fair Knapsack (25% Floor)</th>
+                <th>Equity Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ernakulam Central (Zone 2)</strong></td>
+                <td>5 Segments</td>
+                <td class="r num">₹1,37,292</td>
+                <td class="r num" style="font-weight:700">₹98,244 (71.6%)</td>
+                <td class="r num">₹98,244 (71.6%)</td>
+                <td><span class="chip good">Exceeds 25% floor naturally</span></td>
+              </tr>
+              <tr>
+                <td><strong>Fort Kochi / Mattancherry (Zone 1)</strong></td>
+                <td>8 Segments</td>
+                <td class="r num">₹2,21,892</td>
+                <td class="r num">₹1,01,916 (45.9%)</td>
+                <td class="r num">₹1,01,916 (45.9%)</td>
+                <td><span class="chip good">Exceeds 25% floor naturally</span></td>
+              </tr>
+              <tr>
+                <td><strong>Thoppumpady / South (Zone 4)</strong></td>
+                <td>17 Segments</td>
+                <td class="r num">₹5,61,532</td>
+                <td class="r num">₹2,93,382 (52.2%)</td>
+                <td class="r num">₹2,93,382 (52.2%)</td>
+                <td><span class="chip good">Exceeds 25% floor naturally</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 2: Multi-Month Rolling Plan -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <div class="row" style="gap:8px;align-items:center">
+            <h3>2 · Multi-Month Rolling Repair Horizon</h3>
+            <span class="badge-sim">⚠️ SIMULATED DATA</span>
+          </div>
+          <span class="note">Quarterly rolling schedule</span>
+        </div>
+        <div class="panel-b">
+          <p style="font-size:13px;color:var(--muted);margin:0 0 14px">
+            Corridors unfunded in the current month's budget do not vanish; they accumulate priority points and roll forward into subsequent monthly budget cycles.
+          </p>
+          <div class="cards" style="margin-top:0">
+            <div>
+              <div class="n" style="font-size:28px;color:#2563eb">Month 1 (Immediate)</div>
+              <h3>Active Dispatch</h3>
+              <p>Top knapsack corridors funded under active ₹5.0L envelope. Emergency arterial potholes and hospital routes.</p>
+            </div>
+            <div>
+              <div class="n" style="font-size:28px;color:#b86a00">Month 2 (Pending Batch)</div>
+              <h3>Queued Roll-Forward</h3>
+              <p>Secondary collector streets and deferred transverse cracks awaiting next monthly disbursement.</p>
+            </div>
+            <div>
+              <div class="n" style="font-size:28px;color:#23824a">Month 3 (Preventative)</div>
+              <h3>Preventative Sealings</h3>
+              <p>Early-stage longitudinal fissures scheduled for low-cost bitumen emulsion sealing before monsoon erosion.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+</body>
+</html>

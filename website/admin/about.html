@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About &amp; Research Provenance · WinterRoad Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="banner">
+  <strong>Research Provenance:</strong> WinterRoad academic prototype developed for municipal engineering decision-support.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin">Overview</a>
+      <a href="/admin/reports">Verification Queue</a>
+      <a href="/admin/planner">Planner</a>
+      <a href="/admin/research">Research</a>
+      <a href="/admin/equity">Equity</a>
+      <a href="/admin/about" class="active">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:18px">
+    <div class="wrap">
+      <div class="eyebrow">Academic Research Provenance</div>
+      <h2>About WinterRoad &amp; Research Team</h2>
+      <p class="lead">
+        System design, methodological assumptions, technical limitations, and open-source licensing.
+      </p>
+
+      <!-- Team Overview -->
+      <div class="panel" style="margin-top:24px;background:#15181b;color:#fff;border-color:#2b3036">
+        <div class="panel-b" style="padding:28px">
+          <div style="font-size:12px;color:#aab0b5;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Research Team</div>
+          <h2 style="font-size:clamp(40px,6vw,72px);color:#fff;margin:6px 0 12px">Winter<span style="color:var(--accent)">Born</span></h2>
+          <p style="font-size:16px;color:#e2e8f0;margin:0 0 12px;font-weight:600">
+            Authors: B K Kesavkrishnan · S Arun Kumar
+          </p>
+          <p style="color:#94a3b8;font-size:14px;max-width:70ch;line-height:1.6;margin:0">
+            WinterRoad bridges automated defect computer vision and civil engineering operational research. It replaces arbitrary subjective road repair choices with a verifiable, mathematically provable optimization model that maximizes road safety under constrained civic budgets.
+          </p>
+        </div>
+      </div>
+
+      <!-- Core Assumptions & Methodology -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <h3>Methodological Assumptions</h3>
+        </div>
+        <div class="panel-b">
+          <ul style="margin:0;padding-left:20px;line-height:1.8;font-size:13.5px">
+            <li>
+              <strong>2D Severity Proxy:</strong> Camera images capture bounding box area (\(\%\) of image frame) and damage category, serving as a 2D surface proxy. True cavity depth is not measured without stereoscopic sensors or LiDAR.
+            </li>
+            <li>
+              <strong>Unit Cost Schedule:</strong> Repair costs are estimated using standardized municipal PWD unit rates (e.g., ₹3,000 for D00 crack sealing, ₹6,000 for D40 pothole patch, ₹15,000 for D20 structural overlay).
+            </li>
+            <li>
+              <strong>Traffic Exposure Weights:</strong> Traffic multiplier PCU weights (\(1.0\) for primary arterial corridors, \(0.7\) for secondary/tertiary roads, \(0.4\) for residential streets) represent relative public exposure.
+            </li>
+            <li>
+              <strong>Proximity Bonuses:</strong> Defects within 500m of hospitals receive up to a \(+60\%\) risk bonus to protect critical emergency response corridors.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Limitations -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <h3>Known Limitations &amp; Future Scope</h3>
+        </div>
+        <div class="panel-b">
+          <ul style="margin:0;padding-left:20px;line-height:1.8;font-size:13.5px">
+            <li>
+              <strong>Lighting and Weather Variations:</strong> High-noon shadows, rain puddles, and glare can impact bounding box area estimation.
+            </li>
+            <li>
+              <strong>GPS Drift:</strong> Urban canyoning in high-rise corridors may introduce GPS inaccuracies of 10–20 meters.
+            </li>
+            <li>
+              <strong>Hardware Roadmap:</strong> Future iterations will integrate edge-device inference on low-power municipal patrol vehicles and depth sensing.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Open Source Licenses -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <h3>Open-Source Software &amp; Data Attribution</h3>
+        </div>
+        <div class="panel-b">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Author / Project</th>
+                <th>License</th>
+                <th>Usage in WinterRoad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ultralytics YOLOv8</strong></td>
+                <td>Ultralytics Inc.</td>
+                <td>AGPL-3.0</td>
+                <td>Defect detection computer vision backbone</td>
+              </tr>
+              <tr>
+                <td><strong>OpenCV YuNet</strong></td>
+                <td>OpenCV Team</td>
+                <td>Apache 2.0</td>
+                <td>Automated face and license plate privacy blurring</td>
+              </tr>
+              <tr>
+                <td><strong>FastAPI</strong></td>
+                <td>Sebastián Ramírez</td>
+                <td>MIT</td>
+                <td>High-performance asynchronous backend API &amp; Auth</td>
+              </tr>
+              <tr>
+                <td><strong>Leaflet.js</strong></td>
+                <td>Volodymyr Agafonkin</td>
+                <td>BSD-2-Clause</td>
+                <td>Geospatial map rendering on OpenStreetMap tiles</td>
+              </tr>
+              <tr>
+                <td><strong>OpenStreetMap</strong></td>
+                <td>OpenStreetMap Contributors</td>
+                <td>ODbL</td>
+                <td>Street topologies, road classifications, hospital/school tags</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+</body>
+</html>

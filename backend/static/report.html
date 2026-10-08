@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report Road Damage · WinterRoad</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.rp-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1.2fr); gap: 24px; margin-top: 24px; align-items: start; }
+.res-img { width: 100%; max-height: 400px; object-fit: contain; display: block; border-bottom: 1px solid var(--line); background: #111; }
+.ticket-box { background: #eef6ff; border: 2px solid #2563eb; color: #1e40af; padding: 16px; border-radius: 6px; margin-bottom: 14px; }
+@media (max-width: 900px) { .rp-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <strong>Citizen Privacy Guarantee:</strong> All photos undergo automated face and license plate blurring using OpenCV YuNet before saving. No names, phone numbers, or account registrations are required.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/report" class="active">Report Pothole</a>
+      <a href="/track">Track Ticket</a>
+      <a href="/map">Public Map</a>
+      <a href="/admin/login" class="nav-btn">Admin Login</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec">
+    <div class="wrap">
+      <div class="eyebrow">Public Citizen Service</div>
+      <h2>Report a Pothole or Road Defect</h2>
+      <p class="lead">
+        Upload a road surface photo. WinterRoad's AI detects defect severity, applies automated privacy protection, and registers an official municipal tracking ticket code.
+      </p>
+
+      <div class="rp-grid">
+        <!-- Submission Form Panel -->
+        <div class="panel">
+          <div class="panel-h">
+            <h3>1 · Upload Road Defect Photo</h3>
+          </div>
+          <div class="panel-b" style="display:flex;flex-direction:column;gap:14px">
+            <label class="drop" id="rp-drop" for="rp-file">
+              <span id="rp-hint">📸 Tap to take photo or choose file<br><small style="color:var(--muted)">JPG or PNG, up to 15 MB. Stand within 1–2 meters of the defect in clear daylight.</small></span>
+              <img id="rp-prev" alt="Selected road photo" hidden>
+              <input type="file" id="rp-file" accept="image/*">
+            </label>
+
+            <div>
+              <label class="row" style="font-size:13px;align-items:center;cursor:pointer">
+                <input type="checkbox" id="rp-gps" checked>
+                <span><strong>Share single-shot device location</strong> on submit</span>
+              </label>
+              <div class="row" style="margin-top:6px;gap:8px">
+                <button class="btn ghost mini" type="button" id="pin-btn">📍 Pick location on interactive map</button>
+                <span id="pin-status" style="font-size:12px;color:var(--accent-ink);display:none">Map pin active. Click below to pin defect.</span>
+              </div>
+              <div id="mini-map-wrap" style="height:200px;margin-top:8px;border:1px solid var(--line);border-radius:4px;display:none">
+                <div id="mini-map" style="height:100%;width:100%"></div>
+              </div>
+            </div>
+
+            <div>
+              <label class="l" for="rp-note">Citizen Note / Landmark (Optional)</label>
+              <textarea id="rp-note" rows="2" maxlength="300" placeholder="e.g. Westbound lane in front of General Hospital bus stop" style="width:100%"></textarea>
+            </div>
+
+            <div style="background:var(--surface-2);padding:10px 12px;border-radius:4px;font-size:12px;color:var(--muted)">
+              <strong>🛡️ Civic Privacy Note:</strong> Human faces and motor vehicle license plates are blurred immediately upon ingestion. No citizen personal records are stored.
+            </div>
+
+            <div>
+              <button class="btn dark" type="button" id="rp-send" style="width:100%;padding:10px" disabled>
+                🚀 Check Photo with AI & Submit
+              </button>
+              <p id="rp-st" style="font-size:13px;font-weight:600;margin:8px 0 0;color:var(--muted);text-align:center"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Result & Ticket Code Panel -->
+        <div class="panel" id="res-panel">
+          <div class="panel-h">
+            <h3>2 · AI Inspection Result & Ticket Code</h3>
+          </div>
+          <div class="panel-b" id="res-body">
+            <div style="text-align:center;padding:48px 16px;color:var(--muted)">
+              <div style="font-size:36px;margin-bottom:8px">🔍</div>
+              <p style="margin:0;font-size:14px">
+                Your AI inspection result, defect bounding boxes, and official ticket tracking code will appear here after submission.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const fileInput = document.getElementById("rp-file");
+  const prevImg = document.getElementById("rp-prev");
+  const hintText = document.getElementById("rp-hint");
+  const sendBtn = document.getElementById("rp-send");
+  const statusTxt = document.getElementById("rp-st");
+  const noteInput = document.getElementById("rp-note");
+  const gpsCheck = document.getElementById("rp-gps");
+  const pinBtn = document.getElementById("pin-btn");
+  const pinStatus = document.getElementById("pin-status");
+  const miniMapWrap = document.getElementById("mini-map-wrap");
+  const resBody = document.getElementById("res-body");
+
+  let selectedFile = null;
+  let pinnedCoords = null;
+  let miniMap = null;
+  let pinMarker = null;
+
+  fileInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      statusTxt.textContent = "Please select a valid image file (JPG or PNG).";
+      statusTxt.style.color = "var(--bad)";
+      return;
+    }
+    selectedFile = file;
+    prevImg.src = URL.createObjectURL(file);
+    prevImg.hidden = false;
+    hintText.hidden = true;
+    sendBtn.disabled = false;
+    statusTxt.textContent = "Photo ready for submission.";
+    statusTxt.style.color = "var(--ink)";
+  });
+
+  // Mini Map Pinning
+  pinBtn.addEventListener("click", () => {
+    if (miniMapWrap.style.display === "none") {
+      miniMapWrap.style.display = "block";
+      pinStatus.style.display = "inline";
+      pinBtn.textContent = "❌ Close Map Pin";
+      if (!miniMap) {
+        miniMap = L.map("mini-map").setView([9.9312, 76.2673], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png", {
+          maxZoom: 19,
+          attribution: "© OpenStreetMap"
+        }).addTo(miniMap);
+        miniMap.on("click", ev => {
+          pinnedCoords = { lat: ev.latlng.lat, lon: ev.latlng.lng };
+          if (pinMarker) miniMap.removeLayer(pinMarker);
+          pinMarker = L.marker([ev.latlng.lat, ev.latlng.lng]).addTo(miniMap);
+          pinStatus.textContent = `Pinned: ${pinnedCoords.lat.toFixed(4)}, ${pinnedCoords.lon.toFixed(4)}`;
+        });
+      }
+      setTimeout(() => miniMap.invalidateSize(), 150);
+    } else {
+      miniMapWrap.style.display = "none";
+      pinStatus.style.display = "none";
+      pinBtn.textContent = "📍 Pick location on interactive map";
+    }
+  });
+
+  function getBrowserPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        return reject(new Error("Geolocation not supported by browser."));
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }),
+        err => reject(err),
+        { timeout: 8000, enableHighAccuracy: true }
+      );
+    });
+  }
+
+  sendBtn.addEventListener("click", async () => {
+    if (!selectedFile) return;
+    sendBtn.disabled = true;
+    statusTxt.style.color = "var(--ink)";
+    statusTxt.textContent = "Acquiring location and checking photo with AI...";
+
+    let coords = pinnedCoords;
+    if (!coords && gpsCheck.checked) {
+      try {
+        coords = await getBrowserPosition();
+      } catch (err) {
+        console.warn("Browser GPS unavailable:", err);
+      }
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    if (coords) {
+      formData.append("lat", coords.lat);
+      formData.append("lon", coords.lon);
+      if (coords.acc) formData.append("accuracy", Math.round(coords.acc));
+    }
+    formData.append("note", noteInput.value.trim());
+
+    try {
+      const res = await fetch("/api/citizen/report", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || ("Server error " + res.status));
+      }
+
+      statusTxt.textContent = "Report processed successfully!";
+      statusTxt.style.color = "var(--good)";
+
+      renderSuccess(data);
+    } catch (err) {
+      statusTxt.textContent = "Error: " + err.message;
+      statusTxt.style.color = "var(--bad)";
+      sendBtn.disabled = false;
+    }
+  });
+
+  function renderSuccess(d) {
+    const ticketCode = d.ticket_code || "WR-UNKNOWN";
+    const defectType = d.damage_type || "Road Defect";
+    const sevScore = d.severity != null ? Number(d.severity).toFixed(1) : "N/A";
+    const mismatchWarning = d.location_mismatch
+      ? `<div style="background:#fbe4e1;color:#b3261e;padding:10px;border-radius:4px;margin-top:10px;font-size:12.5px">
+           ⚠️ <strong>Location Audit Note:</strong> Device GPS differed from photo EXIF coordinates. Flagged for engineer review.
+         </div>`
+      : "";
+
+    resBody.innerHTML = `
+      <div class="ticket-box">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Official Tracking Ticket Code</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px">
+          <span style="font-family:var(--mono);font-size:26px;font-weight:800;letter-spacing:2px">${WinterRoad.esc(ticketCode)}</span>
+          <button class="btn mini" type="button" id="copy-btn" style="background:#2563eb;color:#fff">📋 Copy Code</button>
+        </div>
+        <p style="margin:6px 0 0;font-size:12px;color:#1e40af">
+          Keep this code to track the repair status as municipal engineers inspect and schedule works.
+        </p>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700">${WinterRoad.esc(d.damage_code || "D40")} · Detected Defect</div>
+        <h3 style="font-size:28px;margin:2px 0 6px">${WinterRoad.esc(defectType)}</h3>
+        <div class="kpis" style="margin-top:10px">
+          <div class="kpi">
+            <div class="k">Workflow Status</div>
+            <div class="v" style="font-size:20px;color:#2563eb">${WinterRoad.esc((d.status || "received").toUpperCase())}</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Severity (Visual Proxy)</div>
+            <div class="v" style="font-size:20px">${sevScore} / 10</div>
+          </div>
+        </div>
+      </div>
+
+      ${mismatchWarning}
+
+      <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn dark" href="/track?ticket=${encodeURIComponent(ticketCode)}">🔍 Track This Ticket</a>
+        <a class="btn ghost" href="/map">🗺️ View Public Map</a>
+        <button class="btn ghost" type="button" onclick="window.location.reload()">➕ Report Another Defect</button>
+      </div>
+    `;
+
+    const copyBtn = document.getElementById("copy-btn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(ticketCode);
+        copyBtn.textContent = "✅ Copied!";
+        setTimeout(() => { copyBtn.textContent = "📋 Copy Code"; }, 2000);
+      });
+    }
+  }
+})();
+</script>
+</body>
+</html>

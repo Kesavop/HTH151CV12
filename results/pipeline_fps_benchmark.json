@@ -1,0 +1,30 @@
+{
+  "benchmark_environment": "macOS CPU",
+  "data_source": "real",
+  "iterations": 20,
+  "stages": {
+    "privacy_protection": {
+      "engine": "OpenCV YuNet + Sobel morphology",
+      "avg_latency_ms": 6.3,
+      "fps": 158.6,
+      "is_realtime": true
+    },
+    "defect_detection": {
+      "model": "pothole_best.pt",
+      "avg_latency_ms": 37.69,
+      "fps": 26.5,
+      "is_realtime": true
+    },
+    "decision_optimization": {
+      "algorithm": "0-1 Knapsack (DP discretization)",
+      "avg_latency_ms": 0.06,
+      "notes": "Solves prioritization for 50 candidates in < 5ms"
+    }
+  },
+  "end_to_end_summary": {
+    "total_latency_ms": 44.06,
+    "effective_fps": 22.7,
+    "realtime_classification": "Near Real-Time / Batch Survey Grade",
+    "honest_assessment": "On standard CPU, end-to-end processing achieves 22.7 FPS (~44.1ms per frame). While YOLO inference and scoring are fast, complete end-to-end video pipeline is near real-time (~10-15 FPS on CPU) or batch survey grade, requiring GPU acceleration to sustain 30+ FPS camera feed."
+  }
+}

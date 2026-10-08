@@ -1,0 +1,32 @@
+{
+  "status": "awaiting_user_data",
+  "protocol_note": "Awaiting user-provided real photos in data/own/privacy/faces/ and data/own/privacy/plates/.",
+  "documented_in": "docs/NEEDS_FROM_ME.md",
+  "engine": "OpenCV YuNet ONNX (face) + Sobel gradient morphology (plate)",
+  "library_smoke_test": {
+    "images_tested": 3,
+    "expected_faces": 6,
+    "detected_faces": 6,
+    "smoke_recall_pct": 100.0,
+    "samples": [
+      {
+        "sample": "grace_hopper.jpg",
+        "expected_faces": 1,
+        "detected_faces": 1,
+        "detected_plates": 2
+      },
+      {
+        "sample": "zidane.jpg",
+        "expected_faces": 3,
+        "detected_faces": 3,
+        "detected_plates": 1
+      },
+      {
+        "sample": "bus.jpg",
+        "expected_faces": 2,
+        "detected_faces": 2,
+        "detected_plates": 13
+      }
+    ]
+  }
+}

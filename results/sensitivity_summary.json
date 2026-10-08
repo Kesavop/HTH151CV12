@@ -1,0 +1,117 @@
+{
+  "data_source": "synthetic",
+  "num_trials": 500,
+  "parameter_variation_range": "+/- 30%",
+  "identical_ceiling_costs_comparison": {
+    "description": "Both Knapsack and Worst-First evaluated under identical ceiling costs ceil(cost/unit) and capacity B = budget//unit",
+    "strict_win_pct": 62.0,
+    "tie_pct": 38.0,
+    "win_or_tie_pct": 100.0,
+    "loss_pct": 0.0,
+    "mean_gain_pct_pts": 1.54,
+    "knapsack_never_loses": true
+  },
+  "continuous_costs_comparison": {
+    "description": "Knapsack evaluated with ceil(cost/unit) vs Worst-First with continuous float cost (asymmetric)",
+    "strict_win_pct": 46.8,
+    "tie_pct": 31.4,
+    "win_or_tie_pct": 78.2,
+    "loss_pct": 21.8
+  },
+  "unperturbed_weights_evaluation": {
+    "step_1000_inr": {
+      "unit_inr": 1000,
+      "identical_ceiling_costs": {
+        "strict_win_pct": 55.4,
+        "tie_pct": 44.6,
+        "win_or_tie_pct": 100.0,
+        "loss_pct": 0.0,
+        "mean_gain_pct_pts": 1.12
+      },
+      "continuous_costs": {
+        "strict_win_pct": 39.8,
+        "tie_pct": 32.0,
+        "win_or_tie_pct": 71.8,
+        "loss_pct": 28.2
+      }
+    },
+    "step_100_inr": {
+      "unit_inr": 100,
+      "identical_ceiling_costs": {
+        "strict_win_pct": 56.0,
+        "tie_pct": 44.0,
+        "win_or_tie_pct": 100.0,
+        "loss_pct": 0.0,
+        "mean_gain_pct_pts": 1.06
+      },
+      "continuous_costs": {
+        "strict_win_pct": 52.4,
+        "tie_pct": 44.0,
+        "win_or_tie_pct": 96.4,
+        "loss_pct": 3.6
+      }
+    }
+  },
+  "win_rate_vs_complaint_order_pct": 73.6,
+  "win_or_tie_vs_complaint_order_pct": 100.0,
+  "mean_gain_over_complaint_order_pct_pts": 8.96,
+  "win_rate_vs_or_equals_benefit_cost_pct": 100.0,
+  "multiplier_sensitivity_sweep": [
+    {
+      "multiplier": 5.0,
+      "total_cost_inr": 685358,
+      "knapsack_risk_pct": 84.51,
+      "knapsack_segments": 19,
+      "worst_first_risk_pct": 84.51,
+      "worst_first_segments": 19,
+      "benefit_cost_risk_pct": 84.51,
+      "complaint_order_mean_pct": 70.18,
+      "knapsack_gain_over_worst_first_pts": 0.0
+    },
+    {
+      "multiplier": 7.5,
+      "total_cost_inr": 803036,
+      "knapsack_risk_pct": 73.16,
+      "knapsack_segments": 16,
+      "worst_first_risk_pct": 72.8,
+      "worst_first_segments": 15,
+      "benefit_cost_risk_pct": 72.84,
+      "complaint_order_mean_pct": 59.96,
+      "knapsack_gain_over_worst_first_pts": 0.36
+    },
+    {
+      "multiplier": 10.0,
+      "total_cost_inr": 920716,
+      "knapsack_risk_pct": 64.35,
+      "knapsack_segments": 13,
+      "worst_first_risk_pct": 61.09,
+      "worst_first_segments": 12,
+      "benefit_cost_risk_pct": 63.82,
+      "complaint_order_mean_pct": 52.14,
+      "knapsack_gain_over_worst_first_pts": 3.26
+    },
+    {
+      "multiplier": 12.5,
+      "total_cost_inr": 1038396,
+      "knapsack_risk_pct": 57.38,
+      "knapsack_segments": 12,
+      "worst_first_risk_pct": 53.48,
+      "worst_first_segments": 10,
+      "benefit_cost_risk_pct": 57.26,
+      "complaint_order_mean_pct": 46.22,
+      "knapsack_gain_over_worst_first_pts": 3.9
+    },
+    {
+      "multiplier": 15.0,
+      "total_cost_inr": 1156074,
+      "knapsack_risk_pct": 51.75,
+      "knapsack_segments": 11,
+      "worst_first_risk_pct": 47.93,
+      "worst_first_segments": 9,
+      "benefit_cost_risk_pct": 51.75,
+      "complaint_order_mean_pct": 41.58,
+      "knapsack_gain_over_worst_first_pts": 3.82
+    }
+  ],
+  "audit_explanation": "When Worst-First is evaluated under identical ceiling-rounded integer costs and discrete budget B, Knapsack mathematically NEVER loses (0.0% loss rate across 500 trials; 62.0% strict win, 38.0% tie on perturbed; 55.4% strict win, 44.6% tie on unperturbed). Dynamic programming finds the global optimum over the discrete feasible set, so any greedy selection is merely a feasible candidate whose value cannot exceed the optimum. The previously observed losses occurred solely when Worst-First was evaluated under continuous floating-point costs while Knapsack was subjected to integer ceiling rounding."
+}

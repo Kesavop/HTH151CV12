@@ -1,0 +1,61 @@
+{
+  "data_source": "synthetic",
+  "ground_truth_available": false,
+  "is_demo_only": true,
+  "disclaimer": "This is an algorithmic demonstration of temporal IoU frame de-duplication on simulated survey frames without ground-truth annotations. No tracking accuracy or recall is claimed. Formal evaluation requires ground-truth annotated video as listed in docs/NEEDS_FROM_ME.md.",
+  "video_source": "survey_simulation_stream",
+  "sample_rate_fps": 2.0,
+  "total_frames_analyzed": 19,
+  "total_raw_detections_across_frames": 15,
+  "de_duplicated_unique_defects": 3,
+  "de_duplication_reduction_ratio": "80.0%",
+  "tracking_method": "Temporal IoU spatial association (IoU >= 0.30, max gap 2 frames)",
+  "gps_telemetry_source": "Video EXIF metadata if present; marked 'none' if video lacks GPS tags",
+  "defects_catalog": [
+    {
+      "defect_id": "TRACK-0001",
+      "cls": 3,
+      "frame_span": [
+        1,
+        4
+      ],
+      "time_span_s": [
+        0.5,
+        2.0
+      ],
+      "total_frames_observed": 4,
+      "consensus_confidence": 0.89,
+      "representative_area": 0.04
+    },
+    {
+      "defect_id": "TRACK-0002",
+      "cls": 2,
+      "frame_span": [
+        7,
+        12
+      ],
+      "time_span_s": [
+        3.5,
+        6.0
+      ],
+      "total_frames_observed": 6,
+      "consensus_confidence": 0.85,
+      "representative_area": 0.05
+    },
+    {
+      "defect_id": "TRACK-0003",
+      "cls": 1,
+      "frame_span": [
+        15,
+        19
+      ],
+      "time_span_s": [
+        7.5,
+        9.5
+      ],
+      "total_frames_observed": 5,
+      "consensus_confidence": 0.8,
+      "representative_area": 0.03
+    }
+  ]
+}

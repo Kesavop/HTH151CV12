@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-10-08 14:50:00",
+  "data_source": "real_benchmark_and_rdd2022_val",
+  "hardware_benchmark": {
+    "device": "macOS CPU",
+    "crack_model_yolov8s": {
+      "model": "best.pt",
+      "input_resolution": 640,
+      "device": "cpu",
+      "iterations": 30,
+      "mean_latency_ms": 38.01,
+      "fps": 26.31
+    },
+    "pothole_model_yolov8s": {
+      "model": "pothole_best.pt",
+      "input_resolution": 640,
+      "device": "cpu",
+      "iterations": 30,
+      "mean_latency_ms": 37.86,
+      "fps": 26.41
+    }
+  },
+  "per_class_validation": {
+    "dataset_reference": "RDD2022 (Norway validation subset, 1632 images - Crack Classes Only)",
+    "evaluation_resolution": 1024,
+    "classes": {
+      "D00 (Longitudinal crack)": {
+        "mAP50": 0.445,
+        "danger_weight": 0.4
+      },
+      "D10 (Transverse crack)": {
+        "mAP50": 0.293,
+        "danger_weight": 0.5
+      },
+      "D20 (Alligator crack)": {
+        "mAP50": 0.321,
+        "danger_weight": 0.8
+      },
+      "D40 (Pothole)": {
+        "mAP50": null,
+        "status": "excluded_due_to_ground_truth_scarcity",
+        "note": "Norway split has only 1 pothole label across 1632 images. Ground-truth evaluation blocked pending labeled test dataset (see docs/NEEDS_FROM_ME.md)."
+      }
+    },
+    "three_class_crack_mAP50_1024px": 0.353,
+    "evaluation_scope": "Norway validation, crack classes only (D00, D10, D20)"
+  }
+}

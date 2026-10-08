@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verification Queue · WinterRoad Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.inspector-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 5000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.inspector-card {
+  background: var(--surface); border-radius: 6px; max-width: 900px; width: 100%;
+  max-height: 90vh; overflow-y: auto; border: 1px solid var(--line);
+}
+.inspector-grid {
+  display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; padding: 18px;
+}
+@media (max-width: 768px) { .inspector-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <strong>Municipal Admin Portal:</strong> Defect Verification Queue &amp; Engineering Triage Console.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin">Overview</a>
+      <a href="/admin/reports" class="active">Verification Queue</a>
+      <a href="/admin/planner">Planner</a>
+      <a href="/admin/research">Research</a>
+      <a href="/admin/equity">Equity</a>
+      <a href="/admin/about">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:16px">
+    <div class="wrap">
+      <div class="eyebrow">Municipal Engineering Portal</div>
+      <h2>Report Verification &amp; Triage Queue</h2>
+      <p class="lead">
+        Inspect AI detection overlays, verify defect classifications, audit GPS integrity, and transition work orders.
+      </p>
+
+      <!-- Filters & Action Bar -->
+      <div class="panel" style="margin-top:20px;padding:14px 18px">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="gap:12px;flex:1">
+            <div style="min-width:140px">
+              <label class="l" for="filter-status">Status</label>
+              <select id="filter-status" style="width:100%">
+                <option value="all">All Statuses</option>
+                <option value="received">Received (Unverified)</option>
+                <option value="verified">Verified</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="fixed">Fixed</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div style="min-width:170px">
+              <label class="l" for="filter-mismatch">GPS Validation</label>
+              <select id="filter-mismatch" style="width:100%">
+                <option value="all">All Reports</option>
+                <option value="mismatch">Only GPS Mismatches (&gt;150m)</option>
+                <option value="clean">Clean GPS Only</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <label class="l" for="search-input">Search Ticket</label>
+              <input type="search" id="search-input" placeholder="e.g. WR-Y4HYJ2" style="width:100%">
+            </div>
+          </div>
+          <div class="row" style="margin-top:16px;gap:8px">
+            <button class="btn ghost mini" type="button" id="btn-refresh">🔄 Refresh</button>
+            <button class="btn dark mini" type="button" id="btn-export-csv">📥 Export CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Table Section -->
+  <div class="wrap" style="padding-bottom:48px">
+    <div class="panel">
+      <div class="panel-h">
+        <h3 id="table-heading">Verification Queue (0 Records)</h3>
+        <span class="note" id="queue-note">Loading...</span>
+      </div>
+      <div class="tbl" style="max-height:560px">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket Code</th>
+              <th>Submitted</th>
+              <th>Defect Class</th>
+              <th class="r">AI Conf</th>
+              <th class="r">Severity</th>
+              <th>Coordinates</th>
+              <th>GPS Audit</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reports-tbody">
+            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Loading reports...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Photo Inspector Modal -->
+<div id="inspector-modal" class="inspector-modal" style="display:none">
+  <div class="inspector-card">
+    <div class="panel-h">
+      <h3 id="insp-title">Inspect Report</h3>
+      <button class="btn ghost mini" type="button" id="insp-close">✕ Close</button>
+    </div>
+    <div class="inspector-grid">
+      <div>
+        <div style="background:#111;border-radius:4px;overflow:hidden;text-align:center;min-height:280px;display:flex;align-items:center;justify-content:center">
+          <img id="insp-img" src="" alt="Defect photo" style="max-width:100%;max-height:420px;display:block">
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin:6px 0 0">
+          OpenCV YuNet automatically blurred human faces and license plates prior to storage.
+        </p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">Defect Class</div>
+            <div class="v" id="insp-class" style="font-size:18px">–</div>
+          </div>
+          <div class="kpi">
+            <div class="k">Severity Score</div>
+            <div class="v" id="insp-sev" style="font-size:18px">–</div>
+          </div>
+          <div class="kpi">
+            <div class="k">AI Confidence</div>
+            <div class="v" id="insp-conf" style="font-size:18px">–</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="l">Citizen Note</label>
+          <div id="insp-note" style="background:var(--surface-2);padding:8px 10px;border-radius:4px;font-size:12.5px;min-height:36px">None</div>
+        </div>
+
+        <div id="insp-mismatch-box" style="display:none;background:#fbe4e1;color:#b3261e;padding:10px;border-radius:4px;font-size:12px">
+          ⚠️ <strong>GPS Tamper / Mismatch Alert:</strong> Photo EXIF GPS differs from device location by <span id="insp-mismatch-dist"></span> meters.
+        </div>
+
+        <div>
+          <label class="l" for="insp-admin-notes">Engineering Notes</label>
+          <input type="text" id="insp-admin-notes" placeholder="Inspection findings or contractor ID..." style="width:100%">
+        </div>
+
+        <div style="border-top:1px solid var(--line);padding-top:12px">
+          <label class="l">Update Status</label>
+          <div class="row" style="gap:6px">
+            <button class="btn mini" type="button" id="act-verify" style="background:#2563eb;color:#fff">✅ Verify</button>
+            <button class="btn mini" type="button" id="act-schedule" style="background:#d97706;color:#fff">🗓️ Schedule</button>
+            <button class="btn mini" type="button" id="act-fix" style="background:var(--good);color:#fff">🔧 Mark Fixed</button>
+            <button class="btn mini" type="button" id="act-reject" style="background:var(--bad);color:#fff">❌ Reject</button>
+          </div>
+          <p id="insp-status-msg" style="font-size:12px;margin:8px 0 0;font-weight:600;display:none"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const token = WinterRoad.getAdminToken();
+  let allReports = [];
+  let activeReport = null;
+
+  const tbody = document.getElementById("reports-tbody");
+  const heading = document.getElementById("table-heading");
+  const filterStatus = document.getElementById("filter-status");
+  const filterMismatch = document.getElementById("filter-mismatch");
+  const searchInput = document.getElementById("search-input");
+  const modal = document.getElementById("inspector-modal");
+
+  async function fetchReports() {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Loading reports...</td></tr>';
+    try {
+      const res = await fetch("/api/reports?limit=1000", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        WinterRoad.logout();
+        return;
+      }
+      const data = await res.json();
+      allReports = data.reports || [];
+      renderTable();
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="9" style="color:var(--bad);padding:18px">Failed to load reports: ${e.message}</td></tr>`;
+    }
+  }
+
+  function renderTable() {
+    const stVal = filterStatus.value;
+    const misVal = filterMismatch.value;
+    const query = searchInput.value.trim().toUpperCase();
+
+    const filtered = allReports.filter(r => {
+      if (stVal !== "all" && r.status !== stVal) return false;
+      if (misVal === "mismatch" && !r.location_mismatch) return false;
+      if (misVal === "clean" && r.location_mismatch) return false;
+      if (query && !r.ticket_code.toUpperCase().includes(query)) return false;
+      return true;
+    });
+
+    heading.textContent = `Verification Queue (${filtered.length} of ${allReports.length} Records)`;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">No reports match the current filter criteria.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => {
+      const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
+      }) : "-";
+
+      let stClass = "chip";
+      if (r.status === "fixed") stClass = "chip good";
+      else if (r.status === "scheduled") stClass = "chip warn";
+      else if (r.status === "verified") stClass = "chip" ;
+      else if (r.status === "rejected") stClass = "chip danger";
+
+      const coords = (r.lat != null && r.lon != null) ? `${Number(r.lat).toFixed(4)}, ${Number(r.lon).toFixed(4)}` : '<span style="color:var(--muted)">No GPS</span>';
+      const mismatchBadge = r.location_mismatch
+        ? `<span class="chip danger" title="EXIF distance: ${r.mismatch_distance_m}m">⚠️ Mismatch (${Math.round(r.mismatch_distance_m)}m)</span>`
+        : `<span class="chip good">Verified Clean</span>`;
+
+      return `
+        <tr data-id="${r.id}">
+          <td style="font-family:var(--mono);font-weight:700">${WinterRoad.esc(r.ticket_code)}</td>
+          <td>${dateStr}</td>
+          <td><strong>${WinterRoad.esc(r.damage_code)}</strong> ${WinterRoad.esc(r.damage_type)}</td>
+          <td class="r num">${Math.round((r.confidence || 0) * 100)}%</td>
+          <td class="r num">${Number(r.severity || 0).toFixed(1)}</td>
+          <td>${coords}</td>
+          <td>${mismatchBadge}</td>
+          <td><span class="${stClass}">${WinterRoad.esc(r.status.toUpperCase())}</span></td>
+          <td style="white-space:nowrap">
+            <button class="btn mini ghost" data-act="inspect">🔎 Inspect</button>
+            <button class="btn mini" data-act="quick-ver" style="background:#2563eb;color:#fff">Verify</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // Row Action Delegation
+  tbody.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const tr = btn.closest("tr");
+    const id = Number(tr.dataset.id);
+    const rep = allReports.find(x => x.id === id);
+    if (!rep) return;
+
+    if (btn.dataset.act === "inspect") {
+      openInspector(rep);
+    } else if (btn.dataset.act === "quick-ver") {
+      updateStatus(rep.id, "verified", "Quick-verified from queue table");
+    }
+  });
+
+  function openInspector(rep) {
+    activeReport = rep;
+    document.getElementById("insp-title").textContent = `Inspect Report #${rep.id} · ${rep.ticket_code}`;
+    document.getElementById("insp-img").src = rep.annotated_url || rep.photo_url || "";
+    document.getElementById("insp-class").textContent = `${rep.damage_code} (${rep.damage_type})`;
+    document.getElementById("insp-sev").textContent = `${Number(rep.severity || 0).toFixed(1)} / 10`;
+    document.getElementById("insp-conf").textContent = `${Math.round((rep.confidence || 0) * 100)}%`;
+    document.getElementById("insp-note").textContent = rep.note || "No citizen comments provided.";
+    document.getElementById("insp-admin-notes").value = rep.admin_notes || "";
+    
+    const misBox = document.getElementById("insp-mismatch-box");
+    if (rep.location_mismatch) {
+      misBox.style.display = "block";
+      document.getElementById("insp-mismatch-dist").textContent = Math.round(rep.mismatch_distance_m || 0);
+    } else {
+      misBox.style.display = "none";
+    }
+
+    document.getElementById("insp-status-msg").style.display = "none";
+    modal.style.display = "flex";
+  }
+
+  document.getElementById("insp-close").addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  async function updateStatus(id, newStatus, adminNotes) {
+    try {
+      const res = await fetch(`/api/reports/${id}/status`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus, admin_notes: adminNotes || "" })
+      });
+      if (!res.ok) throw new Error("Status update failed");
+      
+      const item = allReports.find(x => x.id === id);
+      if (item) {
+        item.status = newStatus;
+        item.admin_notes = adminNotes || "";
+      }
+      renderTable();
+      return true;
+    } catch (err) {
+      alert("Error updating status: " + err.message);
+      return false;
+    }
+  }
+
+  ["act-verify", "act-schedule", "act-fix", "act-reject"].forEach(btnId => {
+    document.getElementById(btnId).addEventListener("click", async () => {
+      if (!activeReport) return;
+      const notes = document.getElementById("insp-admin-notes").value.trim();
+      let st = "verified";
+      if (btnId === "act-schedule") st = "scheduled";
+      else if (btnId === "act-fix") st = "fixed";
+      else if (btnId === "act-reject") st = "rejected";
+
+      const ok = await updateStatus(activeReport.id, st, notes);
+      if (ok) {
+        const msg = document.getElementById("insp-status-msg");
+        msg.textContent = `Status successfully changed to ${st.toUpperCase()}!`;
+        msg.style.color = "var(--good)";
+        msg.style.display = "block";
+        setTimeout(() => { modal.style.display = "none"; }, 1000);
+      }
+    });
+  });
+
+  filterStatus.addEventListener("change", renderTable);
+  filterMismatch.addEventListener("change", renderTable);
+  searchInput.addEventListener("input", renderTable);
+  document.getElementById("btn-refresh").addEventListener("click", fetchReports);
+
+  // CSV Export
+  document.getElementById("btn-export-csv").addEventListener("click", async () => {
+    try {
+      const res = await fetch("/api/reports.csv", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("CSV generation failed");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "winterroad_reports.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      alert("Export failed: " + e.message);
+    }
+  });
+
+  fetchReports();
+})();
+</script>
+</body>
+</html>

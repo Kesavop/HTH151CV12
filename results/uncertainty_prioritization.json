@@ -1,0 +1,21 @@
+{
+  "data_source": "synthetic",
+  "budget_inr": 500000.0,
+  "total_segments": 30,
+  "deterministic_plan_size": 13,
+  "uncertainty_aware_plan_size": 14,
+  "plan_jaccard_similarity": 0.588,
+  "overlap_count": 10,
+  "removed_under_uncertainty": [
+    "SEG-03",
+    "SEG-10",
+    "SEG-08"
+  ],
+  "added_under_uncertainty": [
+    "SEG-06",
+    "SEG-15",
+    "SEG-02",
+    "SEG-07"
+  ],
+  "interpretation": "Under budget \u20b95.0 L, the plans share 10 segments with Jaccard stability of 58.8%. Factoring detector confidence discounts low-confidence detections, swapping 3 segments for higher-certainty alternatives."
+}

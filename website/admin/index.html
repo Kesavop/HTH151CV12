@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Overview · WinterRoad</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="banner">
+  <strong>Municipal Admin Portal:</strong> High-priority executive dashboard for PWD municipal engineering and maintenance scheduling.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin" class="active">Overview</a>
+      <a href="/admin/reports">Verification Queue</a>
+      <a href="/admin/planner">Planner</a>
+      <a href="/admin/research">Research</a>
+      <a href="/admin/equity">Equity</a>
+      <a href="/admin/about">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:20px">
+    <div class="wrap">
+      <div class="eyebrow">Municipal Engineering Portal</div>
+      <h2>Executive Overview & Damage Map</h2>
+      <p class="lead">
+        Key operational metrics, live damage reports, and rapid triage links across the urban road network.
+      </p>
+
+      <div class="kpis" style="margin-top:24px">
+        <div class="kpi">
+          <div class="k">Total Reports</div>
+          <div class="v num" id="kpi-total">–</div>
+          <div class="d">All time submissions</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Pending Verification</div>
+          <div class="v num" id="kpi-pending" style="color:#b86a00">–</div>
+          <div class="d" style="color:var(--md)">Awaiting inspection</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Verified / Scheduled</div>
+          <div class="v num" id="kpi-verified" style="color:#2563eb">–</div>
+          <div class="d">Ready for repair</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Completed Repairs</div>
+          <div class="v num" id="kpi-fixed" style="color:var(--good)">–</div>
+          <div class="d" style="color:var(--good)">Road restored</div>
+        </div>
+        <div class="kpi">
+          <div class="k">GPS Mismatches Flagged</div>
+          <div class="v num" id="kpi-mismatches" style="color:var(--bad)">–</div>
+          <div class="d" style="color:var(--bad)">EXIF discrepancy &gt;150m</div>
+        </div>
+      </div>
+
+      <!-- Quick Action Modules -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px">
+        <a href="/admin/reports" class="panel" style="padding:16px;text-decoration:none;color:inherit;border-left:4px solid #2563eb">
+          <h4 style="font-size:18px">📋 Verification Queue →</h4>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted)">Inspect AI defect photos, audit GPS tamper flags, and mark reports verified.</p>
+        </a>
+        <a href="/admin/planner" class="panel" style="padding:16px;text-decoration:none;color:inherit;border-left:4px solid var(--accent)">
+          <h4 style="font-size:18px">⚖️ Knapsack Planner →</h4>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted)">Adjust rupee budget slider, compare 4 repair strategies, and print work orders.</p>
+        </a>
+        <a href="/admin/research" class="panel" style="padding:16px;text-decoration:none;color:inherit;border-left:4px solid #10b981">
+          <h4 style="font-size:18px">🔬 Model Research &amp; Benchmarks →</h4>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted)">Audit real vs simulated data labels, mAP accuracy tables, and latency profiles.</p>
+        </a>
+        <a href="/admin/equity" class="panel" style="padding:16px;text-decoration:none;color:inherit;border-left:4px solid #8b5cf6">
+          <h4 style="font-size:18px">🏛️ Ward Equity &amp; Rolling Plan →</h4>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted)">Review spatial Gini coefficient, price of fairness, and multi-month horizons.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap" style="padding-bottom:48px">
+    <div class="panel">
+      <div class="panel-h">
+        <h3>🗺️ Live Municipal Road Network & Defect Map</h3>
+        <span class="note" id="map-summary">Loading network geometry...</span>
+      </div>
+      <div class="panel-b" style="padding:0">
+        <div class="map-wrap" style="height:540px;border:0">
+          <div id="map"></div>
+          <div class="legend">
+            <div><strong>Map Legend</strong></div>
+            <div><span class="dot" style="background:#23824a"></span> Fixed Repair</div>
+            <div><span class="dot" style="background:#2563eb"></span> Verified / Scheduled Defect</div>
+            <div><span class="dot" style="background:#b86a00"></span> Unverified Citizen Report</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const token = WinterRoad.getAdminToken();
+
+  const map = L.map("map", { preferCanvas: true }).setView([9.9312, 76.2673], 13);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: "Tiles © Esri · OpenStreetMap contributors"
+  }).addTo(map);
+
+  async function loadMetrics() {
+    try {
+      const res = await fetch("/api/admin/metrics", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        WinterRoad.logout();
+        return;
+      }
+      const data = await res.json();
+      document.getElementById("kpi-total").textContent = data.total_reports || 0;
+      
+      const st = data.by_status || {};
+      document.getElementById("kpi-pending").textContent = st.received || 0;
+      document.getElementById("kpi-verified").textContent = (st.verified || 0) + (st.scheduled || 0);
+      document.getElementById("kpi-fixed").textContent = st.fixed || 0;
+      document.getElementById("kpi-mismatches").textContent = data.location_mismatches_flagged || 0;
+    } catch (e) {
+      console.warn("Failed to load admin metrics:", e);
+    }
+  }
+
+  async function loadMapData() {
+    try {
+      const res = await fetch("/api/reports?limit=500", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const reports = data.reports || [];
+      const markers = [];
+
+      reports.forEach(r => {
+        if (r.lat == null || r.lon == null) return;
+        const color = r.status === "fixed" ? "#23824a" : (r.status === "verified" || r.status === "scheduled" ? "#2563eb" : "#b86a00");
+        const m = L.circleMarker([r.lat, r.lon], {
+          radius: 7,
+          color: "#15181b",
+          weight: 1.5,
+          fillColor: color,
+          fillOpacity: 0.8
+        }).bindPopup(`
+          <div style="font-family:sans-serif;font-size:12px">
+            <h4 style="margin:0 0 4px">${WinterRoad.esc(r.ticket_code)}</h4>
+            <strong>Defect:</strong> ${WinterRoad.esc(r.damage_type)}<br>
+            <strong>Status:</strong> ${WinterRoad.esc(r.status.toUpperCase())}<br>
+            <strong>Severity:</strong> ${Number(r.severity || 0).toFixed(1)}/10<br>
+            ${r.location_mismatch ? '<strong style="color:red">⚠️ GPS Mismatch Flagged</strong><br>' : ''}
+            <div style="margin-top:6px">
+              <a href="/admin/reports" style="color:#2563eb">Open in Verification Queue →</a>
+            </div>
+          </div>
+        `);
+        m.addTo(map);
+        markers.push([r.lat, r.lon]);
+      });
+
+      if (markers.length > 0) {
+        map.fitBounds(L.latLngBounds(markers).pad(0.2));
+        document.getElementById("map-summary").textContent = `Plotting ${markers.length} spatial reports.`;
+      } else {
+        document.getElementById("map-summary").textContent = "No geo-tagged reports found.";
+      }
+    } catch (e) {
+      console.warn("Failed to load map reports:", e);
+    }
+  }
+
+  loadMetrics();
+  loadMapData();
+})();
+</script>
+</body>
+</html>

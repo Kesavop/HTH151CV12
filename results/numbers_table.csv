@@ -1,0 +1,49 @@
+Category,Metric / Parameter,Value,Unit,Data Source,Sample Size,Source File
+Computer Vision,D00 Longitudinal Crack mAP@50,0.445,mAP@50 (1024px),Real (RDD2022 Norway val split),"624 annotations / 1,632 images",results/detection_metrics.json
+Computer Vision,D10 Transverse Crack mAP@50,0.293,mAP@50 (1024px),Real (RDD2022 Norway val split),"298 annotations / 1,632 images",results/detection_metrics.json
+Computer Vision,D20 Alligator Crack mAP@50,0.321,mAP@50 (1024px),Real (RDD2022 Norway val split),"218 annotations / 1,632 images",results/detection_metrics.json
+Computer Vision,3-Class Crack mAP@50 (1024px),0.353,mAP@50,"Norway validation, crack classes only","1,140 annotations / 1,632 images (D00/D10/D20)",results/detection_metrics.json
+Computer Vision,Pothole (D40) Validation Status,Excluded (N=1 label in Norway val),Categorical,Audit (RDD2022 Norway metadata),"1 annotation in 1,632 images",results/norway_split_counts.json
+System Performance,Privacy Blurring Latency (YuNet),6.3,ms (158.6 FPS),Real Benchmark (macOS CPU),20 iterations,results/pipeline_fps_benchmark.json
+System Performance,YOLOv8s Defect Detection Latency,37.69,ms (26.5 FPS),Real Benchmark (macOS CPU),20 iterations,results/pipeline_fps_benchmark.json
+System Performance,0/1 Knapsack DP Solver Latency,0.06,"ms (>1,000 FPS)",Real Benchmark (macOS CPU),30 candidate segments,results/pipeline_fps_benchmark.json
+System Performance,End-to-End Pipeline Throughput,22.7,FPS (44.1 ms/frame),Real Benchmark (macOS CPU),End-to-end CPU pipeline,results/pipeline_fps_benchmark.json
+Prioritization,Benchmark Budget,500000,INR (₹5.0 Lakh),Simulated Network (30 segments),"30 segments, ₹9.21L total need",results/prioritization_comparison.csv
+Prioritization,Knapsack Risk Removed @ ₹5L,64.4,% of network risk,Simulated Network (30 segments),13 segments funded,results/prioritization_comparison.csv
+Prioritization,Worst-First Risk Removed @ ₹5L,61.1,% of network risk,Simulated Network (30 segments),12 segments funded,results/prioritization_comparison.csv
+Prioritization,Benefit-Cost Greedy Risk Removed @ ₹5L,63.9,% of network risk,Simulated Network (30 segments),14 segments funded,results/prioritization_comparison.csv
+Prioritization,Complaint-Order Risk Removed @ ₹5L (Mean),52.29,% of network risk,Simulated (500 random FCFS orderings),"500 permutations, range [43.6%, 60.4%]",results/complaint_order_distribution.json
+Prioritization,"Complaint-Order Risk Range @ ₹5L [Min, Max]","[43.6%, 60.4%]",% range,Simulated (500 random FCFS orderings),500 permutations,results/complaint_order_distribution.json
+Sensitivity Analysis,Monte Carlo Trials,500,Simulated trials,Simulated (Weights +/- 30%),500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Strict Win Rate vs Worst-First (Identical Ceiling Costs),62.0,% of trials strictly higher,"Simulated (Weights +/- 30%, identical discrete costs)",500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Tie Rate vs Worst-First (Identical Ceiling Costs),38.0,% of trials identical,"Simulated (Weights +/- 30%, identical discrete costs)",500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Win-or-Tie Rate vs Worst-First (Identical Ceiling Costs),100.0,% of trials >= worst-first,"Simulated (Weights +/- 30%, identical discrete costs)",500 iterations (Loss rate: 0.0% - Knapsack never loses),results/sensitivity_summary.json
+Sensitivity Analysis,Mean Gain over Worst-First (Identical Ceiling Costs),1.54,Percentage points,"Simulated (Weights +/- 30%, identical discrete costs)",500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Strict Win Rate vs Complaint-Order,73.6,% of trials strictly higher,Simulated (Weights +/- 30%),500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Mean Gain over Complaint-Order,8.96,Percentage points,Simulated (Weights +/- 30%),500 iterations,results/sensitivity_summary.json
+Sensitivity Analysis,Knapsack Win-or-Tie vs Continuous Worst-First (Asymmetric Ceiling Artifact),78.2,% of trials >= worst-first,"Simulated (Weights +/- 30%, continuous float WF)",500 iterations (Due to ceil(cost/1000) discretization penalty),results/sensitivity_summary.json
+Multiplier Sensitivity,Cost Multiplier Sweep Range,x5 to x15,Excavation/saw-cut buffer factor,Simulated Network (₹5.0L budget),"5 multiplier points (5x, 7.5x, 10x, 12.5x, 15x)",results/multiplier_sensitivity.json
+Multiplier Sensitivity,Knapsack Gain over Worst-First @ x10 (Baseline),3.26,Percentage points,"Simulated Network (₹5.0L budget, 10x multiplier)",13 segs (64.35%) vs 12 segs (61.09%),results/multiplier_sensitivity.json
+Multiplier Sensitivity,Knapsack Gain over Worst-First @ x12.5 (High Scarcity),3.9,Percentage points,"Simulated Network (₹5.0L budget, 12.5x multiplier)",12 segs (57.38%) vs 10 segs (53.48%),results/multiplier_sensitivity.json
+Spatial Equity,Price of Fairness @ 25% Floor (Upper Bound),0.0,Percentage points,Simulated Network (30 segments),Non-binding (unconstrained natural funding >= 45.9%),results/equity_analysis.json
+Spatial Equity,Spatial Gini (Standard Knapsack),0.101,Gini Index (0 to 1),Simulated Network (30 segments),3 zones (% of need funded),results/equity_analysis.json
+Spatial Equity,Price of Fairness @ 50% Binding Floor (Upper Bound),1.65,Percentage points,Simulated Network (Binding 50% floor),Fair risk: 62.72% vs Standard: 64.37%,results/equity_sweep.csv
+Spatial Equity,Fairness Gini Reduction @ 50% Binding Floor,43.6,% reduction in inequality,Simulated Network (Binding 50% floor),Gini: 0.101 -> 0.057,results/equity_sweep.csv
+Spatial Equity,Price of Fairness @ 60% Binding Floor (Upper Bound),1.85,Percentage points,Simulated Network (Binding 60% floor),Fair risk: 62.52% vs Standard: 64.37%,results/equity_sweep.csv
+Citizen Fusion,Clustering Radius,25.0,meters (greedy spatial radius),Simulated GPS Reports,50 raw tickets -> 24 sites,scripts/report_fusion.py
+Citizen Fusion,Duplicate Complaints Detected,52.0,% duplicate tickets,Simulated GPS Reports,50 raw reports,results/report_fusion_analysis.json
+Citizen Fusion,Total Budget Saved via Fusion,550779,"INR (₹5.51 Lakh, 48.9% saved)",Simulated GPS Reports,50 raw tickets -> 24 sites,results/report_fusion_analysis.json
+Citizen Fusion,Mobilization Fee Savings (Dispatches),390000,INR (70.8% of savings),Simulated GPS Reports,26 fewer site mobilizations,results/report_fusion_analysis.json
+Citizen Fusion,Material Patch Savings,160779,INR (29.2% of savings),Simulated GPS Reports,Avoided duplicate paving,results/report_fusion_analysis.json
+Cost Uncertainty,Plan Jaccard Stability across Shocks,0.65,Jaccard similarity (0 to 1),Simulated Log-Normal Shocks,200 simulations (sigma=15%),results/cost_uncertainty_stability.json
+Cost Uncertainty,Core Segments (Always Funded),8,segments,Simulated Log-Normal Shocks,30 segments,results/cost_uncertainty_stability.json
+Engineering Parameters,Fixed Mobilization Cost per Site,15000,INR / site visit,PWD Standard Rate Assumption,Fixed parameter,config.json
+Engineering Parameters,D00 Longitudinal Crack Unit Cost,600,INR / m²,PWD Standard Rate Assumption,Fixed parameter,config.json
+Engineering Parameters,D10 Transverse Crack Unit Cost,600,INR / m²,PWD Standard Rate Assumption,Fixed parameter,config.json
+Engineering Parameters,D20 Alligator Crack Unit Cost,1200,INR / m²,PWD Standard Rate Assumption,Fixed parameter,config.json
+Engineering Parameters,D40 Pothole Patch Unit Cost,2500,INR / m²,PWD Standard Rate Assumption,Fixed parameter,config.json
+Engineering Parameters,Hospital Proximity Boost,+60% within 500m,Priority multiplier factor,Engineering Policy Rule,Fixed parameter,config.json
+Engineering Parameters,School Proximity Boost,+40% within 300m,Priority multiplier factor,Engineering Policy Rule,Fixed parameter,config.json
+Engineering Parameters,College Proximity Boost,+30% within 400m,Priority multiplier factor,Engineering Policy Rule,Fixed parameter,config.json
+Engineering Assumptions,Photo Perspective Coverage Area,20,m² road surface / frame,Camera Geometry Assumption (1.2m-1.5m mount height),Fixed engineering assumption,config.json
+Engineering Assumptions,Surface Distress to Excavation Scaling Factor,10x,Scaling factor,Civil Engineering Pavement Saw-Cutting & Tack Coat Buffer,Fixed engineering assumption,winterroad_config.py

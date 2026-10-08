@@ -1,0 +1,34 @@
+{
+  "data_source": "real_sample_images_unlabeled",
+  "ground_truth_available": false,
+  "metric_type": "raw_detection_counts_and_latency",
+  "audit_note": "No ground truth bounding boxes exist for these upload samples. Metrics are strictly candidate detection counts and latencies, not accuracy, precision, or recall.",
+  "images_evaluated": 4,
+  "configurations": {
+    "A_Single_Detector": {
+      "description": "Baseline RDD2022 YOLOv8s alone",
+      "total_defects_count": 0,
+      "potholes_count": 0,
+      "cracks_count": 0,
+      "mean_latency_ms": 38.44,
+      "fps": 26.0
+    },
+    "B_Ensemble_NMS": {
+      "description": "RDD2022 + Dedicated Pothole YOLOv8s with IoU NMS (0.40)",
+      "total_defects_count": 47,
+      "potholes_count": 47,
+      "cracks_count": 0,
+      "mean_latency_ms": 76.61,
+      "fps": 13.1
+    },
+    "C_Full_WinterRoad": {
+      "description": "Ensemble + Adaptive Sensitivity + OpenCV Cavity Fallback",
+      "total_defects_count": 47,
+      "potholes_count": 47,
+      "cracks_count": 0,
+      "mean_latency_ms": 150.05,
+      "fps": 6.7
+    }
+  },
+  "conclusion": "Without labeled ground truth for these test images, results represent empirical detection counts, not measured precision or recall. Ensemble Config B detects a higher count of pothole candidates than single-model Config A. Formal precision/recall requires a held-out annotated benchmark as requested in docs/NEEDS_FROM_ME.md."
+}

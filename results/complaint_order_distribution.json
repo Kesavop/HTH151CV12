@@ -1,0 +1,9 @@
+{
+  "budget_inr": 500000.0,
+  "num_permutations": 500,
+  "mean_pct": 52.29,
+  "std_pct": 2.7,
+  "min_pct": 43.6,
+  "max_pct": 60.43,
+  "range_str": "[43.6%, 60.4%]"
+}

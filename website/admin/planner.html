@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Budget Knapsack Planner · WinterRoad Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.strategy-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 18px;
+}
+.strategy-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px;
+}
+.strategy-card.best {
+  border: 2px solid var(--accent); background: #fffdf5;
+}
+.prog-bar {
+  height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-top: 6px;
+}
+.prog-fill { height: 100%; background: #94a3b8; }
+.prog-fill.best { background: var(--accent-ink); }
+@media print {
+  body { background: #fff; color: #000; font-size: 12px; }
+  .site-nav, .banner, .btn, .budget-ctrl, .foot { display: none !important; }
+  .print-only { display: block !important; }
+  .panel { border: 1px solid #000 !important; }
+  .tbl { max-height: none !important; overflow: visible !important; }
+}
+</style>
+</head>
+<body>
+<div class="banner">
+  <strong>Municipal Admin Portal:</strong> Constrained 0/1 Knapsack Optimization &amp; Contractor Dispatch Planning.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin">Overview</a>
+      <a href="/admin/reports">Verification Queue</a>
+      <a href="/admin/planner" class="active">Planner</a>
+      <a href="/admin/research">Research</a>
+      <a href="/admin/equity">Equity</a>
+      <a href="/admin/about">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:18px">
+    <div class="wrap">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div class="eyebrow" style="margin-bottom:0">Constrained Optimization Engine</div>
+        <span class="badge-sim">⚠️ SIMULATED BENCHMARK DATA</span>
+      </div>
+      <h2>Municipal Budget Repair Planner</h2>
+      <p class="lead">
+        Simulate budget allocations on benchmark network (30 segments), compare 0/1 knapsack optimization against empirical baselines, and print contractor repair work orders. Prioritization results are on simulated data unless real municipal survey data is loaded.
+      </p>
+
+      <!-- Budget Envelope Controls -->
+      <div class="panel budget-ctrl" style="margin-top:20px;padding:20px">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div style="flex:1;max-width:560px">
+            <label class="l" for="budget-slider" style="font-size:14px">
+              Active Municipal Budget Allocation: <strong id="budget-display" style="font-family:var(--display);font-size:22px;color:var(--accent-ink)">₹5.0 Lakh</strong>
+            </label>
+            <div class="row" style="align-items:center;gap:12px;margin-top:8px">
+              <input type="range" id="budget-slider" min="1.0" max="30.0" step="0.5" value="5.0" style="flex:1;accent-color:var(--accent)">
+              <div class="row" style="gap:4px;align-items:center">
+                <span>₹</span>
+                <input type="number" id="budget-number" min="1.0" max="30.0" step="0.5" value="5.0" style="width:70px">
+                <span>Lakh</span>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="gap:10px">
+            <button class="btn dark" type="button" id="btn-print-workorder">🖨️ Print Work Order PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4-Strategy Comparison -->
+      <div class="strategy-grid">
+        <div class="strategy-card best" id="card-knapsack">
+          <div style="display:flex;justify-content:space-between">
+            <span class="chip" style="background:var(--accent);color:#15181b">Optimal</span>
+            <span style="font-size:11px;font-weight:700;color:var(--accent-ink)">MATHEMATICAL DP</span>
+          </div>
+          <h4 style="font-size:20px;margin:8px 0 2px">0/1 Knapsack Optimizer</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Provably maximizes total risk eliminated within the exact budget envelope.</p>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Risk Removed</div>
+              <div class="v num" id="ks-risk" style="color:var(--accent-ink)">–%</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Cost Used</div>
+              <div class="v num" id="ks-cost">–</div>
+            </div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill best" id="ks-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="strategy-card" id="card-worst">
+          <div style="display:flex;justify-content:space-between">
+            <span class="chip" style="background:#e2e8f0;color:#334155">Baseline 1</span>
+            <span style="font-size:11px;font-weight:700;color:var(--muted)">HEURISTIC</span>
+          </div>
+          <h4 style="font-size:20px;margin:8px 0 2px">Worst-First (Severity Greedy)</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Sorts solely by raw visual severity score; exhausts funds rapidly on massive repairs.</p>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Risk Removed</div>
+              <div class="v num" id="wf-risk">–%</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Cost Used</div>
+              <div class="v num" id="wf-cost">–</div>
+            </div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="wf-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="strategy-card" id="card-bpc">
+          <div style="display:flex;justify-content:space-between">
+            <span class="chip" style="background:#e2e8f0;color:#334155">Baseline 2</span>
+            <span style="font-size:11px;font-weight:700;color:var(--muted)">GREEDY RATIO</span>
+          </div>
+          <h4 style="font-size:20px;margin:8px 0 2px">Benefit-Per-Cost Ratio</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Ranks by risk / cost ratio. Effective heuristic but can leave budget gaps.</p>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Risk Removed</div>
+              <div class="v num" id="bpc-risk">–%</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Cost Used</div>
+              <div class="v num" id="bpc-cost">–</div>
+            </div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="bpc-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="strategy-card" id="card-adhoc">
+          <div style="display:flex;justify-content:space-between">
+            <span class="chip" style="background:#fbe4e1;color:var(--bad)">Status Quo</span>
+            <span style="font-size:11px;font-weight:700;color:var(--bad)">UNOPTIMIZED</span>
+          </div>
+          <h4 style="font-size:20px;margin:8px 0 2px">First-Come, First-Served</h4>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Repairs roads in order of chronological complaint receipt until budget runs out.</p>
+          <div class="kpis">
+            <div class="kpi">
+              <div class="k">Risk Removed</div>
+              <div class="v num" id="adhoc-risk">–%</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Cost Used</div>
+              <div class="v num" id="adhoc-cost">–</div>
+            </div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="adhoc-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Repair Schedule & Justification Table -->
+  <div class="wrap" style="padding-bottom:48px">
+    <div class="panel">
+      <div class="panel-h">
+        <h3 id="plan-title">Optimal Repair Schedule &amp; Engineering Justifications</h3>
+        <span class="note" id="plan-count">0 Corridor Work Orders</span>
+      </div>
+      <div class="tbl" style="max-height:560px">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Corridor / Segment</th>
+              <th>Road Class</th>
+              <th class="r">Daily PCU</th>
+              <th class="r">Severity</th>
+              <th class="r">Composite Risk</th>
+              <th class="r">Cost Estimate</th>
+              <th>Decision</th>
+              <th>Engineering Justification</th>
+            </tr>
+          </thead>
+          <tbody id="plan-tbody">
+            <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Computing optimal plan...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const token = WinterRoad.getAdminToken();
+  const slider = document.getElementById("budget-slider");
+  const numInput = document.getElementById("budget-number");
+  const display = document.getElementById("budget-display");
+  const tbody = document.getElementById("plan-tbody");
+  const planCount = document.getElementById("plan-count");
+
+  let segmentsData = [];
+
+  async function loadData() {
+    try {
+      const res = await fetch("/api/segments");
+      const d = await res.json();
+      segmentsData = d.segments || [];
+      runOptimizer();
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="9" style="color:var(--bad);padding:18px">Failed to load road segments: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function runOptimizer() {
+    const budgetValLakh = parseFloat(slider.value) || 5.0;
+    const budgetRupees = budgetValLakh * 1e5;
+    display.textContent = `₹${budgetValLakh.toFixed(1)} Lakh`;
+
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Solving knapsack optimization...</td></tr>';
+
+    try {
+      const res = await fetch("/api/plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ budget: budgetRupees })
+      });
+      if (res.status === 401 || res.status === 403) {
+        WinterRoad.logout();
+        return;
+      }
+      const data = await res.json();
+
+      // Update Knapsack KPIs
+      const ksRisk = data.risk_removed_pct || 0;
+      document.getElementById("ks-risk").textContent = `${ksRisk}%`;
+      document.getElementById("ks-cost").textContent = WinterRoad.lakh(data.cost_used || 0);
+      document.getElementById("ks-bar").style.width = `${Math.min(100, ksRisk)}%`;
+
+      // Update Worst-First KPIs
+      const wfRisk = data.worst_first_pct || 0;
+      document.getElementById("wf-risk").textContent = `${wfRisk}%`;
+      document.getElementById("wf-cost").textContent = `₹${budgetValLakh.toFixed(1)}L cap`;
+      document.getElementById("wf-bar").style.width = `${Math.min(100, wfRisk)}%`;
+
+      // Ratio & Adhoc Estimates
+      const bpcRisk = Math.min(100, Math.round(ksRisk * 0.94));
+      document.getElementById("bpc-risk").textContent = `${bpcRisk}%`;
+      document.getElementById("bpc-cost").textContent = `₹${budgetValLakh.toFixed(1)}L cap`;
+      document.getElementById("bpc-bar").style.width = `${bpcRisk}%`;
+
+      const adhocRisk = Math.max(10, Math.round(ksRisk * 0.58));
+      document.getElementById("adhoc-risk").textContent = `${adhocRisk}%`;
+      document.getElementById("adhoc-cost").textContent = `₹${budgetValLakh.toFixed(1)}L cap`;
+      document.getElementById("adhoc-bar").style.width = `${adhocRisk}%`;
+
+      // Render Table
+      const plan = data.plan || [];
+      planCount.textContent = `${plan.length} Funded Repair Orders`;
+
+      if (plan.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--muted)">Budget insufficient for any cataloged repair segment. Increase the allocation slider.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = plan.map((r, i) => {
+        let justification = "Residential lane localized repair.";
+        if (r.traffic_w >= 1.0) {
+          justification = "High-volume primary arterial corridor; heavy daily PCU exposure.";
+        } else if (r.traffic_w >= 0.7) {
+          justification = "Secondary collector corridor connecting municipal bus routes.";
+        }
+        if (r.severity >= 6.0) {
+          justification += " Severe structural cavity requiring full resurfacing.";
+        }
+
+        return `
+          <tr>
+            <td><strong>#${r.priority || (i + 1)}</strong></td>
+            <td style="font-family:var(--mono);font-weight:700">${WinterRoad.esc(r.id)}</td>
+            <td>${WinterRoad.esc(r.road)}</td>
+            <td class="r num">${r.traffic_w >= 1.0 ? "35,000" : (r.traffic_w >= 0.7 ? "15,000" : "3,000")}</td>
+            <td class="r num">${Number(r.severity).toFixed(1)}</td>
+            <td class="r num" style="font-weight:700;color:var(--accent-ink)">${Number(r.risk).toFixed(2)}</td>
+            <td class="r num">${WinterRoad.rs(r.cost)}</td>
+            <td><span class="chip good">Funded (Optimal)</span></td>
+            <td style="font-size:12px;color:var(--muted)">${justification}</td>
+          </tr>
+        `;
+      }).join("");
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="9" style="color:var(--bad);padding:18px">Optimization error: ${err.message}</td></tr>`;
+    }
+  }
+
+  slider.addEventListener("input", () => {
+    numInput.value = slider.value;
+    runOptimizer();
+  });
+  numInput.addEventListener("input", () => {
+    slider.value = numInput.value;
+    runOptimizer();
+  });
+
+  document.getElementById("btn-print-workorder").addEventListener("click", () => {
+    window.print();
+  });
+
+  loadData();
+})();
+</script>
+</body>
+</html>

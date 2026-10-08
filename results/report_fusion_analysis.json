@@ -1,0 +1,24 @@
+{
+  "data_source": "synthetic",
+  "scenario_description": "Simulated 50-ticket citizen complaint batch with synthetic +/- 8m GPS noise",
+  "raw_citizen_reports_received": 50,
+  "fused_unique_defect_sites": 24,
+  "duplicate_ratio_detected_pct": 52.0,
+  "multi_citizen_verified_defects": 17,
+  "average_confidence_unfused": 0.52,
+  "average_confidence_fused": 0.751,
+  "cost_breakdown": {
+    "fixed_mobilization_fee_per_site_inr": 15000,
+    "naive_dispatches_count": 50,
+    "fused_dispatches_count": 24,
+    "mobilization_overhead_naive_inr": 750000,
+    "mobilization_overhead_fused_inr": 360000,
+    "mobilization_overhead_saved_inr": 390000,
+    "materials_patching_saved_inr": 160779,
+    "naive_unfused_total_cost_inr": 1126920,
+    "fused_consolidated_total_cost_inr": 576141,
+    "total_budget_saved_inr": 550779,
+    "cost_reduction_pct": 48.9
+  },
+  "audit_note": "Of the \u20b9550,779 total simulated savings, \u20b9390,000 (70.9%) stems from eliminating 26 redundant contractor truck mobilizations (\u20b915,000/site), and \u20b9160,779 (29.1%) comes from avoiding redundant duplicate patch work."
+}

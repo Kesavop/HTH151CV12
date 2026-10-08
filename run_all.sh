@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-# Gladiators - macOS & Linux launcher
+# WinterRoad - macOS & Linux launcher
+# Team: WinterBorn | Members: B K Kesavkrishnan, S Arun Kumar
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "============================================"
-echo "   GLADIATORS - starting everything (macOS) "
+echo "   WINTERROAD - Starting Everything (macOS) "
 echo "============================================"
 echo
 

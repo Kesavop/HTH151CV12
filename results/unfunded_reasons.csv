@@ -1,0 +1,18 @@
+segment,road_type,severity,cost,risk,unfunded_reason,data_source
+SEG-19,Arterial,1.22,45550,1.13,High cost (₹0.46 L) would displace multiple higher-yield repairs,synthetic
+SEG-06,Local,1.37,35520,0.92,High cost (₹0.36 L) would displace multiple higher-yield repairs,synthetic
+SEG-02,Local,1.14,29808,0.76,High cost (₹0.30 L) would displace multiple higher-yield repairs,synthetic
+SEG-21,Local,1.12,29280,0.75,High cost (₹0.29 L) would displace multiple higher-yield repairs,synthetic
+SEG-23,Collector,0.89,26064,0.73,High cost (₹0.26 L) would displace multiple higher-yield repairs,synthetic
+SEG-15,Collector,0.87,27996,0.71,High cost (₹0.28 L) would displace multiple higher-yield repairs,synthetic
+SEG-27,Collector,0.63,23556,0.52,Lower risk reduction per rupee than funded repairs (Ratio: 2.2),synthetic
+SEG-30,Collector,0.62,24276,0.51,Lower risk reduction per rupee than funded repairs (Ratio: 2.1),synthetic
+SEG-07,Local,0.72,23856,0.48,Lower risk reduction per rupee than funded repairs (Ratio: 2.0),synthetic
+SEG-11,Arterial,0.5,22464,0.47,Lower risk reduction per rupee than funded repairs (Ratio: 2.1),synthetic
+SEG-26,Arterial,0.43,21456,0.4,Lower risk reduction per rupee than funded repairs (Ratio: 1.9),synthetic
+SEG-04,Collector,0.39,20880,0.32,Lower risk reduction per rupee than funded repairs (Ratio: 1.5),synthetic
+SEG-13,Collector,0.33,20016,0.27,Lower risk reduction per rupee than funded repairs (Ratio: 1.3),synthetic
+SEG-25,Local,0.4,21000,0.27,Lower risk reduction per rupee than funded repairs (Ratio: 1.3),synthetic
+SEG-18,Arterial,0.27,19032,0.25,Lower risk reduction per rupee than funded repairs (Ratio: 1.3),synthetic
+SEG-12,Collector,0.31,19704,0.25,Lower risk reduction per rupee than funded repairs (Ratio: 1.3),synthetic
+SEG-16,Highway,0.11,16716,0.11,Lower risk reduction per rupee than funded repairs (Ratio: 0.7),synthetic

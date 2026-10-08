@@ -1,0 +1,68 @@
+{
+  "budget_inr": 500000.0,
+  "multipliers_evaluated": [
+    5.0,
+    7.5,
+    10.0,
+    12.5,
+    15.0
+  ],
+  "records": [
+    {
+      "multiplier": 5.0,
+      "total_cost_inr": 685358,
+      "knapsack_risk_pct": 84.51,
+      "knapsack_segments": 19,
+      "worst_first_risk_pct": 84.51,
+      "worst_first_segments": 19,
+      "benefit_cost_risk_pct": 84.51,
+      "complaint_order_mean_pct": 70.18,
+      "knapsack_gain_over_worst_first_pts": 0.0
+    },
+    {
+      "multiplier": 7.5,
+      "total_cost_inr": 803036,
+      "knapsack_risk_pct": 73.16,
+      "knapsack_segments": 16,
+      "worst_first_risk_pct": 72.8,
+      "worst_first_segments": 15,
+      "benefit_cost_risk_pct": 72.84,
+      "complaint_order_mean_pct": 59.96,
+      "knapsack_gain_over_worst_first_pts": 0.36
+    },
+    {
+      "multiplier": 10.0,
+      "total_cost_inr": 920716,
+      "knapsack_risk_pct": 64.35,
+      "knapsack_segments": 13,
+      "worst_first_risk_pct": 61.09,
+      "worst_first_segments": 12,
+      "benefit_cost_risk_pct": 63.82,
+      "complaint_order_mean_pct": 52.14,
+      "knapsack_gain_over_worst_first_pts": 3.26
+    },
+    {
+      "multiplier": 12.5,
+      "total_cost_inr": 1038396,
+      "knapsack_risk_pct": 57.38,
+      "knapsack_segments": 12,
+      "worst_first_risk_pct": 53.48,
+      "worst_first_segments": 10,
+      "benefit_cost_risk_pct": 57.26,
+      "complaint_order_mean_pct": 46.22,
+      "knapsack_gain_over_worst_first_pts": 3.9
+    },
+    {
+      "multiplier": 15.0,
+      "total_cost_inr": 1156074,
+      "knapsack_risk_pct": 51.75,
+      "knapsack_segments": 11,
+      "worst_first_risk_pct": 47.93,
+      "worst_first_segments": 9,
+      "benefit_cost_risk_pct": 51.75,
+      "complaint_order_mean_pct": 41.58,
+      "knapsack_gain_over_worst_first_pts": 3.82
+    }
+  ],
+  "engineering_note": "The cost multiplier reflects the engineering buffer required around visible 2D surface defects for saw-cutting vertical distress perimeters, asphalt milling, applying bitumen tack coat, and compacting tie-in seams. As the multiplier increases from 5x to 15x, total network costs rise, budget scarcity tightens, and Knapsack's optimization gain over greedy Worst-First widens from 0.0 pts (at 5x) to +3.90 pts (at 12.5x)."
+}

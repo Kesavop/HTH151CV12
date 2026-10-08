@@ -1,0 +1,5 @@
+floor_pct,is_binding,standard_risk_pct,fair_risk_pct,price_of_fairness_pct_pts,gini_standard,gini_fair,gini_reduction_pct,zone_1_funding_pct,zone_2_funding_pct,zone_3_funding_pct,zone_4_funding_pct
+25.0,False,64.37,64.37,0.0,0.101,0.101,0.0,45.9,71.6,0.0,52.2
+40.0,False,64.37,64.37,0.0,0.101,0.101,0.0,45.9,71.6,0.0,52.2
+50.0,True,64.37,62.72,1.65,0.101,0.057,43.6,61.9,52.6,0.0,47.9
+60.0,True,64.37,62.52,1.85,0.101,0.107,-5.9,61.9,71.6,0.0,43.3

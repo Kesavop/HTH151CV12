@@ -1,0 +1,434 @@
+[
+  {
+    "Category": "Computer Vision",
+    "Metric / Parameter": "D00 Longitudinal Crack mAP@50",
+    "Value": 0.445,
+    "Unit": "mAP@50 (1024px)",
+    "Data Source": "Real (RDD2022 Norway val split)",
+    "Sample Size": "624 annotations / 1,632 images",
+    "Source File": "results/detection_metrics.json"
+  },
+  {
+    "Category": "Computer Vision",
+    "Metric / Parameter": "D10 Transverse Crack mAP@50",
+    "Value": 0.293,
+    "Unit": "mAP@50 (1024px)",
+    "Data Source": "Real (RDD2022 Norway val split)",
+    "Sample Size": "298 annotations / 1,632 images",
+    "Source File": "results/detection_metrics.json"
+  },
+  {
+    "Category": "Computer Vision",
+    "Metric / Parameter": "D20 Alligator Crack mAP@50",
+    "Value": 0.321,
+    "Unit": "mAP@50 (1024px)",
+    "Data Source": "Real (RDD2022 Norway val split)",
+    "Sample Size": "218 annotations / 1,632 images",
+    "Source File": "results/detection_metrics.json"
+  },
+  {
+    "Category": "Computer Vision",
+    "Metric / Parameter": "3-Class Crack mAP@50 (1024px)",
+    "Value": 0.353,
+    "Unit": "mAP@50",
+    "Data Source": "Norway validation, crack classes only",
+    "Sample Size": "1,140 annotations / 1,632 images (D00/D10/D20)",
+    "Source File": "results/detection_metrics.json"
+  },
+  {
+    "Category": "Computer Vision",
+    "Metric / Parameter": "Pothole (D40) Validation Status",
+    "Value": "Excluded (N=1 label in Norway val)",
+    "Unit": "Categorical",
+    "Data Source": "Audit (RDD2022 Norway metadata)",
+    "Sample Size": "1 annotation in 1,632 images",
+    "Source File": "results/norway_split_counts.json"
+  },
+  {
+    "Category": "System Performance",
+    "Metric / Parameter": "Privacy Blurring Latency (YuNet)",
+    "Value": 6.3,
+    "Unit": "ms (158.6 FPS)",
+    "Data Source": "Real Benchmark (macOS CPU)",
+    "Sample Size": "20 iterations",
+    "Source File": "results/pipeline_fps_benchmark.json"
+  },
+  {
+    "Category": "System Performance",
+    "Metric / Parameter": "YOLOv8s Defect Detection Latency",
+    "Value": 37.69,
+    "Unit": "ms (26.5 FPS)",
+    "Data Source": "Real Benchmark (macOS CPU)",
+    "Sample Size": "20 iterations",
+    "Source File": "results/pipeline_fps_benchmark.json"
+  },
+  {
+    "Category": "System Performance",
+    "Metric / Parameter": "0/1 Knapsack DP Solver Latency",
+    "Value": 0.06,
+    "Unit": "ms (>1,000 FPS)",
+    "Data Source": "Real Benchmark (macOS CPU)",
+    "Sample Size": "30 candidate segments",
+    "Source File": "results/pipeline_fps_benchmark.json"
+  },
+  {
+    "Category": "System Performance",
+    "Metric / Parameter": "End-to-End Pipeline Throughput",
+    "Value": 22.7,
+    "Unit": "FPS (44.1 ms/frame)",
+    "Data Source": "Real Benchmark (macOS CPU)",
+    "Sample Size": "End-to-end CPU pipeline",
+    "Source File": "results/pipeline_fps_benchmark.json"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Benchmark Budget",
+    "Value": 500000,
+    "Unit": "INR (\u20b95.0 Lakh)",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "30 segments, \u20b99.21L total need",
+    "Source File": "results/prioritization_comparison.csv"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Knapsack Risk Removed @ \u20b95L",
+    "Value": 64.4,
+    "Unit": "% of network risk",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "13 segments funded",
+    "Source File": "results/prioritization_comparison.csv"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Worst-First Risk Removed @ \u20b95L",
+    "Value": 61.1,
+    "Unit": "% of network risk",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "12 segments funded",
+    "Source File": "results/prioritization_comparison.csv"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Benefit-Cost Greedy Risk Removed @ \u20b95L",
+    "Value": 63.9,
+    "Unit": "% of network risk",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "14 segments funded",
+    "Source File": "results/prioritization_comparison.csv"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Complaint-Order Risk Removed @ \u20b95L (Mean)",
+    "Value": 52.29,
+    "Unit": "% of network risk",
+    "Data Source": "Simulated (500 random FCFS orderings)",
+    "Sample Size": "500 permutations, range [43.6%, 60.4%]",
+    "Source File": "results/complaint_order_distribution.json"
+  },
+  {
+    "Category": "Prioritization",
+    "Metric / Parameter": "Complaint-Order Risk Range @ \u20b95L [Min, Max]",
+    "Value": "[43.6%, 60.4%]",
+    "Unit": "% range",
+    "Data Source": "Simulated (500 random FCFS orderings)",
+    "Sample Size": "500 permutations",
+    "Source File": "results/complaint_order_distribution.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Monte Carlo Trials",
+    "Value": 500,
+    "Unit": "Simulated trials",
+    "Data Source": "Simulated (Weights +/- 30%)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Strict Win Rate vs Worst-First (Identical Ceiling Costs)",
+    "Value": 62.0,
+    "Unit": "% of trials strictly higher",
+    "Data Source": "Simulated (Weights +/- 30%, identical discrete costs)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Tie Rate vs Worst-First (Identical Ceiling Costs)",
+    "Value": 38.0,
+    "Unit": "% of trials identical",
+    "Data Source": "Simulated (Weights +/- 30%, identical discrete costs)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Win-or-Tie Rate vs Worst-First (Identical Ceiling Costs)",
+    "Value": 100.0,
+    "Unit": "% of trials >= worst-first",
+    "Data Source": "Simulated (Weights +/- 30%, identical discrete costs)",
+    "Sample Size": "500 iterations (Loss rate: 0.0% - Knapsack never loses)",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Mean Gain over Worst-First (Identical Ceiling Costs)",
+    "Value": 1.54,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated (Weights +/- 30%, identical discrete costs)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Strict Win Rate vs Complaint-Order",
+    "Value": 73.6,
+    "Unit": "% of trials strictly higher",
+    "Data Source": "Simulated (Weights +/- 30%)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Mean Gain over Complaint-Order",
+    "Value": 8.96,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated (Weights +/- 30%)",
+    "Sample Size": "500 iterations",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Sensitivity Analysis",
+    "Metric / Parameter": "Knapsack Win-or-Tie vs Continuous Worst-First (Asymmetric Ceiling Artifact)",
+    "Value": 78.2,
+    "Unit": "% of trials >= worst-first",
+    "Data Source": "Simulated (Weights +/- 30%, continuous float WF)",
+    "Sample Size": "500 iterations (Due to ceil(cost/1000) discretization penalty)",
+    "Source File": "results/sensitivity_summary.json"
+  },
+  {
+    "Category": "Multiplier Sensitivity",
+    "Metric / Parameter": "Cost Multiplier Sweep Range",
+    "Value": "x5 to x15",
+    "Unit": "Excavation/saw-cut buffer factor",
+    "Data Source": "Simulated Network (\u20b95.0L budget)",
+    "Sample Size": "5 multiplier points (5x, 7.5x, 10x, 12.5x, 15x)",
+    "Source File": "results/multiplier_sensitivity.json"
+  },
+  {
+    "Category": "Multiplier Sensitivity",
+    "Metric / Parameter": "Knapsack Gain over Worst-First @ x10 (Baseline)",
+    "Value": 3.26,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated Network (\u20b95.0L budget, 10x multiplier)",
+    "Sample Size": "13 segs (64.35%) vs 12 segs (61.09%)",
+    "Source File": "results/multiplier_sensitivity.json"
+  },
+  {
+    "Category": "Multiplier Sensitivity",
+    "Metric / Parameter": "Knapsack Gain over Worst-First @ x12.5 (High Scarcity)",
+    "Value": 3.9,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated Network (\u20b95.0L budget, 12.5x multiplier)",
+    "Sample Size": "12 segs (57.38%) vs 10 segs (53.48%)",
+    "Source File": "results/multiplier_sensitivity.json"
+  },
+  {
+    "Category": "Spatial Equity",
+    "Metric / Parameter": "Price of Fairness @ 25% Floor (Upper Bound)",
+    "Value": 0.0,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "Non-binding (unconstrained natural funding >= 45.9%)",
+    "Source File": "results/equity_analysis.json"
+  },
+  {
+    "Category": "Spatial Equity",
+    "Metric / Parameter": "Spatial Gini (Standard Knapsack)",
+    "Value": 0.101,
+    "Unit": "Gini Index (0 to 1)",
+    "Data Source": "Simulated Network (30 segments)",
+    "Sample Size": "3 zones (% of need funded)",
+    "Source File": "results/equity_analysis.json"
+  },
+  {
+    "Category": "Spatial Equity",
+    "Metric / Parameter": "Price of Fairness @ 50% Binding Floor (Upper Bound)",
+    "Value": 1.65,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated Network (Binding 50% floor)",
+    "Sample Size": "Fair risk: 62.72% vs Standard: 64.37%",
+    "Source File": "results/equity_sweep.csv"
+  },
+  {
+    "Category": "Spatial Equity",
+    "Metric / Parameter": "Fairness Gini Reduction @ 50% Binding Floor",
+    "Value": 43.6,
+    "Unit": "% reduction in inequality",
+    "Data Source": "Simulated Network (Binding 50% floor)",
+    "Sample Size": "Gini: 0.101 -> 0.057",
+    "Source File": "results/equity_sweep.csv"
+  },
+  {
+    "Category": "Spatial Equity",
+    "Metric / Parameter": "Price of Fairness @ 60% Binding Floor (Upper Bound)",
+    "Value": 1.85,
+    "Unit": "Percentage points",
+    "Data Source": "Simulated Network (Binding 60% floor)",
+    "Sample Size": "Fair risk: 62.52% vs Standard: 64.37%",
+    "Source File": "results/equity_sweep.csv"
+  },
+  {
+    "Category": "Citizen Fusion",
+    "Metric / Parameter": "Clustering Radius",
+    "Value": 25.0,
+    "Unit": "meters (greedy spatial radius)",
+    "Data Source": "Simulated GPS Reports",
+    "Sample Size": "50 raw tickets -> 24 sites",
+    "Source File": "scripts/report_fusion.py"
+  },
+  {
+    "Category": "Citizen Fusion",
+    "Metric / Parameter": "Duplicate Complaints Detected",
+    "Value": 52.0,
+    "Unit": "% duplicate tickets",
+    "Data Source": "Simulated GPS Reports",
+    "Sample Size": "50 raw reports",
+    "Source File": "results/report_fusion_analysis.json"
+  },
+  {
+    "Category": "Citizen Fusion",
+    "Metric / Parameter": "Total Budget Saved via Fusion",
+    "Value": 550779,
+    "Unit": "INR (\u20b95.51 Lakh, 48.9% saved)",
+    "Data Source": "Simulated GPS Reports",
+    "Sample Size": "50 raw tickets -> 24 sites",
+    "Source File": "results/report_fusion_analysis.json"
+  },
+  {
+    "Category": "Citizen Fusion",
+    "Metric / Parameter": "Mobilization Fee Savings (Dispatches)",
+    "Value": 390000,
+    "Unit": "INR (70.8% of savings)",
+    "Data Source": "Simulated GPS Reports",
+    "Sample Size": "26 fewer site mobilizations",
+    "Source File": "results/report_fusion_analysis.json"
+  },
+  {
+    "Category": "Citizen Fusion",
+    "Metric / Parameter": "Material Patch Savings",
+    "Value": 160779,
+    "Unit": "INR (29.2% of savings)",
+    "Data Source": "Simulated GPS Reports",
+    "Sample Size": "Avoided duplicate paving",
+    "Source File": "results/report_fusion_analysis.json"
+  },
+  {
+    "Category": "Cost Uncertainty",
+    "Metric / Parameter": "Plan Jaccard Stability across Shocks",
+    "Value": 0.65,
+    "Unit": "Jaccard similarity (0 to 1)",
+    "Data Source": "Simulated Log-Normal Shocks",
+    "Sample Size": "200 simulations (sigma=15%)",
+    "Source File": "results/cost_uncertainty_stability.json"
+  },
+  {
+    "Category": "Cost Uncertainty",
+    "Metric / Parameter": "Core Segments (Always Funded)",
+    "Value": 8,
+    "Unit": "segments",
+    "Data Source": "Simulated Log-Normal Shocks",
+    "Sample Size": "30 segments",
+    "Source File": "results/cost_uncertainty_stability.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "Fixed Mobilization Cost per Site",
+    "Value": 15000,
+    "Unit": "INR / site visit",
+    "Data Source": "PWD Standard Rate Assumption",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "D00 Longitudinal Crack Unit Cost",
+    "Value": 600,
+    "Unit": "INR / m\u00b2",
+    "Data Source": "PWD Standard Rate Assumption",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "D10 Transverse Crack Unit Cost",
+    "Value": 600,
+    "Unit": "INR / m\u00b2",
+    "Data Source": "PWD Standard Rate Assumption",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "D20 Alligator Crack Unit Cost",
+    "Value": 1200,
+    "Unit": "INR / m\u00b2",
+    "Data Source": "PWD Standard Rate Assumption",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "D40 Pothole Patch Unit Cost",
+    "Value": 2500,
+    "Unit": "INR / m\u00b2",
+    "Data Source": "PWD Standard Rate Assumption",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "Hospital Proximity Boost",
+    "Value": "+60% within 500m",
+    "Unit": "Priority multiplier factor",
+    "Data Source": "Engineering Policy Rule",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "School Proximity Boost",
+    "Value": "+40% within 300m",
+    "Unit": "Priority multiplier factor",
+    "Data Source": "Engineering Policy Rule",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Parameters",
+    "Metric / Parameter": "College Proximity Boost",
+    "Value": "+30% within 400m",
+    "Unit": "Priority multiplier factor",
+    "Data Source": "Engineering Policy Rule",
+    "Sample Size": "Fixed parameter",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Assumptions",
+    "Metric / Parameter": "Photo Perspective Coverage Area",
+    "Value": 20,
+    "Unit": "m\u00b2 road surface / frame",
+    "Data Source": "Camera Geometry Assumption (1.2m-1.5m mount height)",
+    "Sample Size": "Fixed engineering assumption",
+    "Source File": "config.json"
+  },
+  {
+    "Category": "Engineering Assumptions",
+    "Metric / Parameter": "Surface Distress to Excavation Scaling Factor",
+    "Value": "10x",
+    "Unit": "Scaling factor",
+    "Data Source": "Civil Engineering Pavement Saw-Cutting & Tack Coat Buffer",
+    "Sample Size": "Fixed engineering assumption",
+    "Source File": "winterroad_config.py"
+  }
+]

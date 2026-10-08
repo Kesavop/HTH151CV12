@@ -1,0 +1,146 @@
+[
+  {
+    "name": "1. Landing Page Load",
+    "status": "PASS",
+    "output": "Title: 'WinterRoad \u00b7 Budget-Constrained Road Maintenance Prioritization'",
+    "notes": "Served at / with zero syntax or runtime errors"
+  },
+  {
+    "name": "2. Nav Link -> /report",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/report",
+    "notes": "Citizen report form opened"
+  },
+  {
+    "name": "3. Nav Link -> /track",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/track",
+    "notes": "Citizen tracking page opened"
+  },
+  {
+    "name": "4. Nav Link -> /map",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/map",
+    "notes": "Public verified map opened"
+  },
+  {
+    "name": "5. Nav Link -> /admin/login",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/admin/login",
+    "notes": "Admin login form opened"
+  },
+  {
+    "name": "6. Hero Button -> /report",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/report",
+    "notes": "Hero 'Report Defect' CTA functional"
+  },
+  {
+    "name": "7. Hero Button -> /admin/login",
+    "status": "PASS",
+    "output": "Navigated to: http://127.0.0.1:8000/admin/login",
+    "notes": "Hero 'Admin Login' CTA functional"
+  },
+  {
+    "name": "8. Citizen Defect Submission at /report",
+    "status": "PASS",
+    "output": "Generated Ticket Code: WR-NLEKE5",
+    "notes": "Photo processed, YuNet privacy applied, ticket receipt displayed"
+  },
+  {
+    "name": "9. Citizen Ticket Status Stepper & Data Sanitization at /track",
+    "status": "PASS",
+    "output": "Looked up: WR-NLEKE5, Status: RECEIVED, Type: Pothole",
+    "notes": "Stepper progression rendered; zero private citizen fields or internal notes"
+  },
+  {
+    "name": "10. Public Verified Map at /map",
+    "status": "PASS",
+    "output": "Counters: Total=16, Verified=11, Fixed=8",
+    "notes": "Queried /api/citizen/verified-potholes without requiring admin token"
+  },
+  {
+    "name": "11. Public Pathway Security & Zero Admin Route Leaks",
+    "status": "PASS",
+    "output": "Admin route calls on public pages: 0",
+    "notes": "Public views never call protected /api/reports or /api/admin/*"
+  },
+  {
+    "name": "12. Server-Side Redirect: Unauthenticated /admin -> /admin/login",
+    "status": "PASS",
+    "output": "Target: /admin -> Redirected to: http://127.0.0.1:8000/admin/login",
+    "notes": "Server-side HTTP 303 redirect enforced; admin surface cannot be viewed logged out"
+  },
+  {
+    "name": "13. Server-Side Redirect: Unauthenticated /admin/reports -> /admin/login",
+    "status": "PASS",
+    "output": "Target: /admin/reports -> Redirected to: http://127.0.0.1:8000/admin/login",
+    "notes": "Protected subpage redirected to /admin/login"
+  },
+  {
+    "name": "14. Unauthenticated Protected API Call Returns HTTP 401",
+    "status": "PASS",
+    "output": "Status Code: 401, Detail: Authentication required. Please log in as an administrator.",
+    "notes": "Protected endpoints reject unauthenticated access"
+  },
+  {
+    "name": "15. Admin Login & Redirect to /admin",
+    "status": "PASS",
+    "output": "Redirected to: http://127.0.0.1:8000/admin",
+    "notes": "Session token established, redirected to executive overview"
+  },
+  {
+    "name": "16. Admin Page 1: /admin (Executive Overview)",
+    "status": "PASS",
+    "output": "Heading: 'EXECUTIVE OVERVIEW & DAMAGE MAP'",
+    "notes": "KPIs and live road network map rendered"
+  },
+  {
+    "name": "17. Admin Page 2: /admin/reports (Verification Queue)",
+    "status": "PASS",
+    "output": "Heading: 'VERIFICATION QUEUE (16 OF 16 RECORDS)'",
+    "notes": "Audit table and photo inspection console loaded"
+  },
+  {
+    "name": "18. Admin Triage Action: Verify Report",
+    "status": "PASS",
+    "output": "Row status updated to: VERIFIED",
+    "notes": "POST /api/reports/{id}/status executed with Bearer cookie auth"
+  },
+  {
+    "name": "19. Admin Page 3: /admin/planner (Knapsack Planner)",
+    "status": "PASS",
+    "output": "Heading: 'MUNICIPAL BUDGET REPAIR PLANNER', Optimal Risk Removed: 64.4%",
+    "notes": "4-strategy comparison and repair justification schedule loaded"
+  },
+  {
+    "name": "20. Admin Page 4: /admin/research (Model Benchmarks)",
+    "status": "PASS",
+    "output": "Heading: 'EMPIRICAL RESEARCH & MODEL BENCHMARKS', Badges: Real=True, Simulated=True",
+    "notes": "Explicit REAL MEASUREMENT and SIMULATED DATA labels validated"
+  },
+  {
+    "name": "21. Admin Page 5: /admin/equity (Ward Equity & Rolling Plan)",
+    "status": "PASS",
+    "output": "Heading: 'WARD ALLOCATION & THE PRICE OF FAIRNESS'",
+    "notes": "Gini coefficient and multi-month rolling horizon rendered"
+  },
+  {
+    "name": "22. Admin Page 6: /admin/about (Team WinterBorn & Licenses)",
+    "status": "PASS",
+    "output": "Verified authors: B K Kesavkrishnan, S Arun Kumar",
+    "notes": "Attributions, 2D severity proxy assumptions, and OSS licenses verified"
+  },
+  {
+    "name": "23. Admin Logout & Cookie Purge",
+    "status": "PASS",
+    "output": "Target: /admin/login (Current: http://127.0.0.1:8000/admin/login)",
+    "notes": "Session revoked and cookie cleared"
+  },
+  {
+    "name": "24. Back-Button Protection (Cannot Access Admin After Logout)",
+    "status": "PASS",
+    "output": "URL after Back button: http://127.0.0.1:8000/admin/login",
+    "notes": "Cache-Control no-store and server auth guard prevented bfcache access to admin pages"
+  }
+]

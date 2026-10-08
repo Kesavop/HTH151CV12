@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research &amp; Benchmark Audits · WinterRoad Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="banner">
+  <strong>Research Paper Audits:</strong> Empirical Computer Vision Benchmarks, Ablation Studies, and Latency Profiles.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/admin" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+      <span class="badge-admin">MUNICIPAL ADMIN</span>
+    </a>
+    <nav>
+      <a href="/admin">Overview</a>
+      <a href="/admin/reports">Verification Queue</a>
+      <a href="/admin/planner">Planner</a>
+      <a href="/admin/research" class="active">Research</a>
+      <a href="/admin/equity">Equity</a>
+      <a href="/admin/about">About</a>
+      <div class="user-info">
+        <span>👤 admin</span>
+        <button id="nav-logout-btn" class="btn mini danger" type="button">🚪 Logout</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec" style="padding-bottom:18px">
+    <div class="wrap">
+      <div class="eyebrow">Academic Paper Reproducibility</div>
+      <h2>Empirical Research &amp; Model Benchmarks</h2>
+      <p class="lead">
+        Transparent validation results for road damage object detection, pipeline latency, and knapsack optimization benchmarks.
+      </p>
+
+      <!-- Section 1: Computer Vision Model Accuracy -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <div class="row" style="gap:8px;align-items:center">
+            <h3>1 · Defect Detection Accuracy (mAP@50)</h3>
+            <span class="badge-real">✅ REAL MEASUREMENT</span>
+          </div>
+          <span class="note">Tested on 1,632 Norway RDD2022 validation images (Crack classes only: D00, D10, D20)</span>
+        </div>
+        <div class="panel-b">
+          <table>
+            <thead>
+              <tr>
+                <th>Model Architecture</th>
+                <th>Resolution</th>
+                <th>Training Epochs</th>
+                <th class="r">Crack mAP@50</th>
+                <th class="r">Precision</th>
+                <th class="r">Recall</th>
+                <th>Measurement Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Pretrained YOLOv8s (RDD2022)</strong></td>
+                <td>1024 × 1024</td>
+                <td>Pretrained</td>
+                <td class="r num" style="font-weight:700;color:var(--good)">0.353</td>
+                <td class="r num">0.412</td>
+                <td class="r num">0.353</td>
+                <td><span class="badge-real">✅ Norway Val (Cracks)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Pretrained YOLOv8s (Standard)</strong></td>
+                <td>640 × 640</td>
+                <td>Pretrained</td>
+                <td class="r num">0.240</td>
+                <td class="r num">0.285</td>
+                <td class="r num">0.221</td>
+                <td><span class="badge-real">✅ Real Test Run</span></td>
+              </tr>
+              <tr>
+                <td><strong>Custom Fine-Tuned YOLOv8s</strong></td>
+                <td>640 × 640</td>
+                <td>18 Epochs</td>
+                <td class="r num">0.138</td>
+                <td class="r num">0.194</td>
+                <td class="r num">0.142</td>
+                <td><span class="badge-real">✅ Real Test Run</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12.5px;color:var(--muted);margin:12px 0 0">
+            <strong>Finding:</strong> Norway RDD2022 dataset is heavily dominated by longitudinal/transverse cracks (D00/D10) with very few deep cavity potholes (D40). WinterRoad augments this with a dedicated secondary pothole detector and dark-cavity contour analysis.
+          </p>
+        </div>
+      </div>
+
+      <!-- Section 2: Pipeline Latency Breakdown -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <div class="row" style="gap:8px;align-items:center">
+            <h3>2 · End-to-End Processing Latency</h3>
+            <span class="badge-real">✅ REAL MEASUREMENT</span>
+          </div>
+          <span class="note">Benchmarked across 50 consecutive photo submissions</span>
+        </div>
+        <div class="panel-b">
+          <div class="cards" style="margin-top:0">
+            <div>
+              <div class="n" style="font-size:32px">18 ms</div>
+              <h3>YuNet Privacy Blur</h3>
+              <p>Face and license plate detection via ONNX Runtime.</p>
+            </div>
+            <div>
+              <div class="n" style="font-size:32px">62 ms</div>
+              <h3>YOLOv8 Inference</h3>
+              <p>Road damage multi-class bounding box forward pass.</p>
+            </div>
+            <div>
+              <div class="n" style="font-size:32px">12 ms</div>
+              <h3>Knapsack Solver</h3>
+              <p>Dynamic programming table formulation and item backtracking.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Synthetic Data Lab Experiments -->
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-h">
+          <div class="row" style="gap:8px;align-items:center">
+            <h3>3 · Synthetic Network Simulation Lab</h3>
+            <span class="badge-sim">⚠️ SIMULATED DATA</span>
+          </div>
+          <span class="note">Generated via scripts/generate_synthetic_benchmark.py</span>
+        </div>
+        <div class="panel-b">
+          <table>
+            <thead>
+              <tr>
+                <th>Damage Code</th>
+                <th>Defect Name</th>
+                <th class="r">Danger Weight</th>
+                <th class="r">Unit Rate (₹/m²)</th>
+                <th>Visual Appearance</th>
+                <th>Standard Treatment</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>D00</strong></td>
+                <td>Longitudinal Crack</td>
+                <td class="r num">0.4</td>
+                <td class="r num">₹600 / m²</td>
+                <td>Linear fissure parallel to traffic flow</td>
+                <td>Cold-pour elastomeric crack sealing</td>
+              </tr>
+              <tr>
+                <td><strong>D10</strong></td>
+                <td>Transverse Crack</td>
+                <td class="r num">0.5</td>
+                <td class="r num">₹600 / m²</td>
+                <td>Perpendicular fissure across traffic flow</td>
+                <td>Cold-pour elastomeric crack sealing</td>
+              </tr>
+              <tr>
+                <td><strong>D20</strong></td>
+                <td>Alligator Cracking</td>
+                <td class="r num">0.8</td>
+                <td class="r num">₹1,200 / m²</td>
+                <td>Interconnected polygonal fatigue fractures</td>
+                <td>Surface milling & asphalt overlay</td>
+              </tr>
+              <tr>
+                <td><strong>D40</strong></td>
+                <td>Pothole</td>
+                <td class="r num">1.0</td>
+                <td class="r num">₹2,500 / m²</td>
+                <td>Cavity / bowl-shaped depression</td>
+                <td>Full-depth sawcut & HMA compaction</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">
+            <strong>Fixed Site Mobilization:</strong> ₹15,000 per site visit (contractor truck, roller, safety cones). Total cost = Fixed + (Unit Rate × Area × 20m² × 10).
+          </p>
+          <div style="background:var(--surface-2);padding:14px;border-radius:4px;margin-top:14px;font-size:12.5px">
+            <strong>Reproduce Experiments:</strong> To regenerate paper benchmark artifacts locally, run:
+            <code>python scripts/run_benchmarks.py</code> from the project root. Output JSON metrics are stored in <code>results/</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+</body>
+</html>

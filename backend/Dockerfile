@@ -1,4 +1,5 @@
-# Hugging Face Spaces (Docker) or any server: builds the Gladiators AI backend
+# WinterRoad AI Backend Dockerfile
+# Team: WinterBorn | Authors: B K Kesavkrishnan, S Arun Kumar
 FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \

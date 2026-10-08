@@ -1,0 +1,6 @@
+multiplier,total_cost_inr,knapsack_risk_pct,knapsack_segments,worst_first_risk_pct,worst_first_segments,benefit_cost_risk_pct,complaint_order_mean_pct,knapsack_gain_over_worst_first_pts
+5.0,685358,84.51,19,84.51,19,84.51,70.18,0.0
+7.5,803036,73.16,16,72.8,15,72.84,59.96,0.36
+10.0,920716,64.35,13,61.09,12,63.82,52.14,3.26
+12.5,1038396,57.38,12,53.48,10,57.26,46.22,3.9
+15.0,1156074,51.75,11,47.93,9,51.75,41.58,3.82

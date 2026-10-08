@@ -1,9 +1,9 @@
 @echo off
-title Gladiators - run everything
+title WinterRoad - run everything
 cd /d "%~dp0"
 
 echo ============================================
-echo   GLADIATORS - starting everything
+echo   WINTERROAD - Starting Everything
 echo ============================================
 echo.
 echo [1/4] Installing packages (first time: 5-10 minutes)...
@@ -17,10 +17,10 @@ if errorlevel 1 (
 
 echo.
 echo [2/4] Starting backend  ^(http://127.0.0.1:8000^)
-start "Gladiators BACKEND - close to stop" /D "%~dp0backend" cmd /k python -m uvicorn main:app --port 8000
+start "WinterRoad BACKEND - close to stop" /D "%~dp0backend" cmd /k python -m uvicorn main:app --port 8000
 
 echo [3/4] Starting dashboard ^(http://localhost:8501^)
-start "Gladiators DASHBOARD - close to stop" /D "%~dp0dashboard" cmd /k python -m streamlit run app.py --server.port 8501 --server.headless true
+start "WinterRoad DASHBOARD - close to stop" /D "%~dp0dashboard" cmd /k python -m streamlit run app.py --server.port 8501 --server.headless true
 
 echo [4/4] Running optimizer on sample data...
 pushd "%~dp0optimizer"

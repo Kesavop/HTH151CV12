@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Track Ticket Status · WinterRoad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="banner">
+  <strong>Civic Transparency:</strong> Live status lookup for citizen defect reports. Sanitized data only—no personal citizen information or internal engineering notes are exposed.
+</div>
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/report">Report Pothole</a>
+      <a href="/track" class="active">Track Ticket</a>
+      <a href="/map">Public Map</a>
+      <a href="/admin/login" class="nav-btn">Admin Login</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="sec">
+    <div class="wrap-narrow">
+      <div class="eyebrow">Public Citizen Service</div>
+      <h2>Track My Pothole Ticket</h2>
+      <p class="lead" style="margin-bottom:24px">
+        Enter your 6-character ticket reference code (e.g. <code>WR-7F9K2M</code>) to inspect live municipal triage and repair milestones.
+      </p>
+
+      <div class="panel">
+        <div class="panel-b">
+          <form id="track-form" class="row" style="gap:10px" onsubmit="return false;">
+            <input type="text" id="tk-input" placeholder="Enter ticket code (e.g. WR-Y4HYJ2)" style="flex:1;font-family:var(--mono);text-transform:uppercase;font-size:16px;font-weight:700;padding:10px 14px;border:2px solid var(--ink)" autocomplete="off">
+            <button class="btn dark" type="submit" id="tk-submit" style="padding:10px 18px;font-size:14px">🔍 Check Status</button>
+          </form>
+
+          <p id="tk-error" style="color:var(--bad);font-weight:600;margin:12px 0 0;display:none"></p>
+
+          <!-- Status Progression Display -->
+          <div id="tk-result" style="margin-top:24px;display:none">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:14px;gap:12px;flex-wrap:wrap">
+              <div>
+                <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Ticket Code</span>
+                <h3 id="res-code" style="font-size:32px;letter-spacing:1px;margin:2px 0 0"></h3>
+              </div>
+              <div id="res-badge" class="chip" style="font-size:13px;padding:6px 12px"></div>
+            </div>
+
+            <!-- 4-Stage Stepper -->
+            <div class="stepper" id="tk-stepper">
+              <div class="step-item" id="step-1">
+                <div class="step-dot">1</div>
+                <span class="step-title">Received</span>
+                <span class="step-sub">Logged in Queue</span>
+              </div>
+              <div class="step-item" id="step-2">
+                <div class="step-dot">2</div>
+                <span class="step-title">Verified</span>
+                <span class="step-sub">Inspected by PWD</span>
+              </div>
+              <div class="step-item" id="step-3">
+                <div class="step-dot">3</div>
+                <span class="step-title">Scheduled</span>
+                <span class="step-sub">Work Order Batch</span>
+              </div>
+              <div class="step-item" id="step-4">
+                <div class="step-dot">4</div>
+                <span class="step-title">Fixed</span>
+                <span class="step-sub">Surface Restored</span>
+              </div>
+            </div>
+
+            <div style="background:var(--surface-2);padding:18px;border-radius:4px;margin-top:16px">
+              <h4 id="res-label" style="font-size:18px;margin-bottom:4px"></h4>
+              <p id="res-desc" style="font-size:13.5px;color:var(--ink);margin:0 0 12px;line-height:1.5"></p>
+              
+              <div class="kpis">
+                <div class="kpi">
+                  <div class="k">Defect Class</div>
+                  <div class="v" id="res-type" style="font-size:18px"></div>
+                </div>
+                <div class="kpi">
+                  <div class="k">Severity Score</div>
+                  <div class="v" id="res-sev" style="font-size:18px"></div>
+                </div>
+                <div class="kpi">
+                  <div class="k">Date Submitted</div>
+                  <div class="v" id="res-submitted" style="font-size:14px;font-family:var(--body);font-weight:600"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;text-align:center">
+              <a class="btn ghost" href="/map">🗺️ View All Verified Potholes on Public Map</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const form = document.getElementById("track-form");
+  const input = document.getElementById("tk-input");
+  const submitBtn = document.getElementById("tk-submit");
+  const errEl = document.getElementById("tk-error");
+  const resEl = document.getElementById("tk-result");
+
+  async function lookup(code) {
+    if (!code) return;
+    errEl.style.display = "none";
+    resEl.style.display = "none";
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(`/api/citizen/track/${encodeURIComponent(code)}`);
+      const d = await res.json();
+      if (!res.ok) {
+        throw new Error(d.detail || "Ticket code not found.");
+      }
+
+      document.getElementById("res-code").textContent = d.ticket_code;
+      document.getElementById("res-label").textContent = d.status_label || d.status;
+      document.getElementById("res-desc").textContent = d.status_description || "";
+      document.getElementById("res-type").textContent = d.damage_type || "Road Defect";
+      document.getElementById("res-sev").textContent = (d.severity_score != null ? Number(d.severity_score).toFixed(1) : "N/A") + " / 10";
+      
+      const subDate = d.submitted_at ? new Date(d.submitted_at).toLocaleDateString("en-IN", {
+        day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+      }) : "Recorded";
+      document.getElementById("res-submitted").textContent = subDate;
+
+      const badge = document.getElementById("res-badge");
+      badge.textContent = d.status.toUpperCase();
+      if (d.status === "fixed") {
+        badge.className = "chip good";
+      } else if (d.status === "scheduled") {
+        badge.className = "chip warn";
+      } else if (d.status === "verified") {
+        badge.className = "chip";
+        badge.style.background = "#dbeafe";
+        badge.style.color = "#1d4ed8";
+      } else if (d.status === "rejected") {
+        badge.className = "chip danger";
+      } else {
+        badge.className = "chip";
+        badge.style.background = "#f1f5f9";
+        badge.style.color = "#475569";
+      }
+
+      // Update 4-stage stepper
+      for (let i = 1; i <= 4; i++) {
+        const stepEl = document.getElementById(`step-${i}`);
+        if (!stepEl) continue;
+        stepEl.className = "step-item";
+        if (d.status === "rejected") {
+          stepEl.classList.add("reject");
+        } else if (i < d.status_step) {
+          stepEl.classList.add("done");
+        } else if (i === d.status_step) {
+          stepEl.classList.add("active");
+        }
+      }
+
+      resEl.style.display = "block";
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = "block";
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener("submit", () => {
+    const code = input.value.trim().toUpperCase();
+    if (code) {
+      window.history.replaceState({}, "", `/track?ticket=${encodeURIComponent(code)}`);
+      lookup(code);
+    }
+  });
+
+  // Check URL query param on page load
+  const params = new URLSearchParams(window.location.search);
+  const ticketParam = params.get("ticket");
+  if (ticketParam) {
+    input.value = ticketParam.toUpperCase();
+    lookup(ticketParam.toUpperCase());
+  }
+})();
+</script>
+</body>
+</html>

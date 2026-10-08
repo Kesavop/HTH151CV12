@@ -8,10 +8,16 @@ annotated.zip
 repair_plan.csv
 unfunded.csv
 budget_curve.png
-map.html
+/map.html
+optimizer/map.html
 .DS_Store
 Thumbs.db
 
 # photo reports database (stays on the server)
 backend/data/reports.db
 backend/data/uploads/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example

@@ -1,0 +1,33 @@
+{
+  "data_source": "synthetic",
+  "num_simulations": 200,
+  "cost_volatility_sigma": 0.15,
+  "mean_jaccard_stability_to_base_plan": 0.65,
+  "std_jaccard_stability": 0.097,
+  "core_segments_count": 8,
+  "marginal_segments_count": 11,
+  "unfunded_segments_count": 11,
+  "core_segments": [
+    "SEG-05",
+    "SEG-14",
+    "SEG-17",
+    "SEG-20",
+    "SEG-22",
+    "SEG-24",
+    "SEG-28",
+    "SEG-29"
+  ],
+  "marginal_segments": [
+    "SEG-01",
+    "SEG-02",
+    "SEG-03",
+    "SEG-06",
+    "SEG-08",
+    "SEG-09",
+    "SEG-10",
+    "SEG-15",
+    "SEG-19",
+    "SEG-21",
+    "SEG-23"
+  ]
+}

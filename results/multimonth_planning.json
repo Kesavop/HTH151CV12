@@ -1,0 +1,83 @@
+{
+  "data_source": "synthetic",
+  "simulation_months": 6,
+  "total_authorized_budget_inr": 1200000.0,
+  "total_spent_inr": 1165061,
+  "total_repaired_segments": 36,
+  "initial_backlog": 30,
+  "final_remaining_backlog": 13,
+  "monthly_progression": [
+    {
+      "month": 1,
+      "starting_backlog_segments": 30,
+      "starting_backlog_risk": 24.84,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 197076,
+      "segments_repaired": 5,
+      "risk_eliminated": 7.2,
+      "new_defects_reported": 3,
+      "ending_backlog_segments": 28,
+      "ending_backlog_risk": 33.61
+    },
+    {
+      "month": 2,
+      "starting_backlog_segments": 28,
+      "starting_backlog_risk": 33.61,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 195436,
+      "segments_repaired": 7,
+      "risk_eliminated": 20.16,
+      "new_defects_reported": 3,
+      "ending_backlog_segments": 24,
+      "ending_backlog_risk": 20.71
+    },
+    {
+      "month": 3,
+      "starting_backlog_segments": 24,
+      "starting_backlog_risk": 20.71,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 189483,
+      "segments_repaired": 5,
+      "risk_eliminated": 9.84,
+      "new_defects_reported": 6,
+      "ending_backlog_segments": 25,
+      "ending_backlog_risk": 35.55
+    },
+    {
+      "month": 4,
+      "starting_backlog_segments": 25,
+      "starting_backlog_risk": 35.55,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 195435,
+      "segments_repaired": 6,
+      "risk_eliminated": 23.14,
+      "new_defects_reported": 3,
+      "ending_backlog_segments": 22,
+      "ending_backlog_risk": 21.27
+    },
+    {
+      "month": 5,
+      "starting_backlog_segments": 22,
+      "starting_backlog_risk": 21.27,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 190493,
+      "segments_repaired": 6,
+      "risk_eliminated": 12.77,
+      "new_defects_reported": 4,
+      "ending_backlog_segments": 20,
+      "ending_backlog_risk": 22.48
+    },
+    {
+      "month": 6,
+      "starting_backlog_segments": 20,
+      "starting_backlog_risk": 22.48,
+      "budget_allocated_inr": 200000.0,
+      "budget_spent_inr": 197138,
+      "segments_repaired": 7,
+      "risk_eliminated": 16.12,
+      "new_defects_reported": 0,
+      "ending_backlog_segments": 13,
+      "ending_backlog_risk": 6.36
+    }
+  ]
+}

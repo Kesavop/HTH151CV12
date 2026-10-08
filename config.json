@@ -1,0 +1,111 @@
+{
+  "project_name": "WinterRoad",
+  "team_name": "WinterBorn",
+  "authors": ["B K Kesavkrishnan", "S Arun Kumar"],
+  "classes": {
+    "D00": {
+      "id": 0,
+      "code": "D00",
+      "name": "Longitudinal crack",
+      "danger_weight": 0.4,
+      "unit_cost_inr_per_m2": 600,
+      "color": "#2563eb"
+    },
+    "D10": {
+      "id": 1,
+      "code": "D10",
+      "name": "Transverse crack",
+      "danger_weight": 0.5,
+      "unit_cost_inr_per_m2": 600,
+      "color": "#7c3aed"
+    },
+    "D20": {
+      "id": 2,
+      "code": "D20",
+      "name": "Alligator crack",
+      "danger_weight": 0.8,
+      "unit_cost_inr_per_m2": 1200,
+      "color": "#ea580c"
+    },
+    "D40": {
+      "id": 3,
+      "code": "D40",
+      "name": "Pothole",
+      "danger_weight": 1.0,
+      "unit_cost_inr_per_m2": 2500,
+      "color": "#dc2626"
+    }
+  },
+  "costs": {
+    "fixed_mobilization_cost_inr": 15000,
+    "photo_coverage_area_m2": 20,
+    "cost_discretization_unit_inr": 1000,
+    "cost_uncertainty_std_pct": 0.15
+  },
+  "traffic": {
+    "Highway": {
+      "vehicles_per_day": 30000,
+      "weight": 1.0
+    },
+    "Arterial": {
+      "vehicles_per_day": 15000,
+      "weight": 0.93
+    },
+    "Collector": {
+      "vehicles_per_day": 5000,
+      "weight": 0.82
+    },
+    "Local": {
+      "vehicles_per_day": 1000,
+      "weight": 0.67
+    }
+  },
+  "facility_boosts": {
+    "hospital": {
+      "boost_pct": 60,
+      "radius_m": 500,
+      "label": "Hospital",
+      "code": "h",
+      "color": "#c2185b"
+    },
+    "school": {
+      "boost_pct": 40,
+      "radius_m": 300,
+      "label": "School",
+      "code": "s",
+      "color": "#1f63b8"
+    },
+    "college": {
+      "boost_pct": 30,
+      "radius_m": 400,
+      "label": "College",
+      "code": "c",
+      "color": "#6a3fc0"
+    }
+  },
+  "osm_road_classes": {
+    "motorway": "Highway",
+    "trunk": "Highway",
+    "primary": "Highway",
+    "motorway_link": "Highway",
+    "trunk_link": "Highway",
+    "primary_link": "Highway",
+    "secondary": "Arterial",
+    "secondary_link": "Arterial",
+    "tertiary": "Collector",
+    "tertiary_link": "Collector",
+    "unclassified": "Local",
+    "residential": "Local",
+    "living_street": "Local"
+  },
+  "privacy": {
+    "blur_faces": true,
+    "blur_license_plates": true
+  },
+  "rate_limit": {
+    "max_reports_per_minute": 5
+  },
+  "gps_validation": {
+    "max_mismatch_distance_m": 150.0
+  }
+}

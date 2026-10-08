@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Login · WinterRoad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="background:var(--bg)">
+
+<header class="site-nav">
+  <div class="in">
+    <a href="/" class="brand">
+      <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+        <path d="M15 2 L27 7 V15 C27 22 21 27 15 29 C9 27 3 22 3 15 V7 Z" fill="#2563eb"/>
+        <path d="M15 8 V24" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 3"/>
+      </svg>
+      WINTERROAD
+    </a>
+    <nav>
+      <a href="/">← Return to Public Citizen Portal</a>
+    </nav>
+  </div>
+</header>
+
+<main style="display:flex;align-items:center;justify-content:center;padding:48px 20px">
+  <div class="panel" style="max-width:440px;width:100%;border:2px solid var(--ink);box-shadow:0 8px 24px rgba(0,0,0,0.06)">
+    <div class="panel-h" style="background:#15181b;color:#fff">
+      <h3 style="color:#fff;font-size:22px">🔐 Municipal Authority Login</h3>
+    </div>
+    <div class="panel-b" style="padding:24px">
+      <p class="note" style="margin:0 0 16px;font-size:13px">
+        Sign in to access the defect verification triage queue, budget knapsack optimizer, and contractor work orders.
+      </p>
+
+      <form id="login-form" style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label class="l" for="adm-usr">Username</label>
+          <input type="text" id="adm-usr" value="admin" style="width:100%" required autocomplete="username">
+        </div>
+        <div>
+          <label class="l" for="adm-pwd">Password</label>
+          <input type="password" id="adm-pwd" placeholder="Enter admin password" style="width:100%" required autocomplete="current-password">
+        </div>
+
+        <p id="adm-err" style="color:var(--bad);font-weight:600;font-size:13px;margin:0;display:none"></p>
+
+        <button class="btn dark" type="submit" id="login-btn" style="padding:10px;font-size:14px;margin-top:4px">
+          Login to Municipal Portal
+        </button>
+      </form>
+
+      <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--muted)">
+        <strong>Security Notice:</strong> Passwords are verified against PBKDF2-HMAC-SHA256 salted hashes. Brute-force rate limiting enforces a 60-second lockout after 5 consecutive failures.
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  WinterRoad · Academic Research Prototype by Team WinterBorn (B K Kesavkrishnan, S Arun Kumar) · PWD Municipal Decision-Support Platform
+</footer>
+
+<script src="/static/js/common.js"></script>
+<script>
+(function(){
+  const form = document.getElementById("login-form");
+  const usrInput = document.getElementById("adm-usr");
+  const pwdInput = document.getElementById("adm-pwd");
+  const btn = document.getElementById("login-btn");
+  const errEl = document.getElementById("adm-err");
+
+  // Check if redirect query param exists
+  const params = new URLSearchParams(window.location.search);
+  const nextUrl = params.get("next") || "/admin";
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    errEl.style.display = "none";
+    btn.disabled = true;
+    btn.textContent = "Authenticating...";
+
+    const username = usrInput.value.trim();
+    const password = pwdInput.value.trim();
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Invalid administrator credentials.");
+      }
+
+      // Store in sessionStorage and set cookie explicitly if needed
+      sessionStorage.setItem("winterroad_token", data.access_token);
+      document.cookie = `winterroad_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+
+      // Redirect to /admin
+      window.location.href = nextUrl;
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Login to Municipal Portal";
+    }
+  });
+})();
+</script>
+</body>
+</html>

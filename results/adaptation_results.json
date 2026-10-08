@@ -1,0 +1,13 @@
+{
+  "status": "awaiting_user_data",
+  "message": "No images found in /Users/kesavkrishnan/HTH151CV12/data/own. Waiting for user-provided test images.",
+  "data_directory": "data/own",
+  "supported_sample_sizes": [
+    0,
+    25,
+    50,
+    100,
+    200
+  ],
+  "zero_shot_baseline_ready": true
+}
